@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>VYRA — Survey Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Montserrat',sans-serif;background:#0e1520;color:#e8f4f6;min-height:100vh;}
+
+/* TOP BAR */
+.topbar{background:linear-gradient(90deg,#19224A,#1c2d5c);border-bottom:1px solid rgba(95,174,182,.2);padding:0 16px;height:56px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.4);}
+.brand{font-size:15px;font-weight:800;letter-spacing:3px;background:linear-gradient(135deg,#6FC7D1,#A9D1DA);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.topbar-sub{font-size:11px;color:#A9D1DA;font-weight:500;}
+.topbar-space{flex:1;}
+.tb-btn{height:34px;padding:0 12px;border-radius:8px;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;text-decoration:none;}
+.btn-refresh{background:rgba(95,174,182,.15);border:1px solid rgba(95,174,182,.3);color:#6FC7D1;}
+.btn-survey{background:linear-gradient(135deg,#5FAEB6,#6FC7D1);border:none;color:#19224A;font-weight:700;}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px 16px 0;}
+@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr);gap:8px;padding:12px 12px 0;}}
+.stat-card{background:linear-gradient(135deg,rgba(34,59,115,.6),rgba(28,45,92,.8));border:1px solid rgba(95,174,182,.2);border-radius:12px;padding:14px 16px;}
+.stat-num{font-size:26px;font-weight:800;color:#6FC7D1;line-height:1;}
+.stat-lbl{font-size:10px;color:#A9D1DA;margin-top:4px;font-weight:500;}
+
+/* FILTERS */
+.filters{padding:12px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.search-box{flex:1;min-width:150px;height:38px;background:rgba(34,59,115,.6);border:1.5px solid rgba(95,174,182,.25);border-radius:10px;color:#e8f4f6;font-family:'Montserrat',sans-serif;font-size:13px;padding:0 12px;outline:none;}
+.search-box:focus{border-color:#5FAEB6;}
+.search-box::placeholder{color:rgba(169,209,218,.4);}
+.filter-select{height:38px;background:rgba(34,59,115,.6);border:1.5px solid rgba(95,174,182,.25);border-radius:10px;color:#e8f4f6;font-family:'Montserrat',sans-serif;font-size:12px;padding:0 10px;outline:none;cursor:pointer;}
+.filter-select option{background:#1c2d5c;}
+.count-badge{font-size:11px;color:#A9D1DA;font-weight:600;white-space:nowrap;}
+
+/* STATUS BADGE */
+.status-badge{padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;display:inline-block;cursor:pointer;white-space:nowrap;}
+.status-pending{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:#fbbf24;}
+.status-quoted{background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.3);color:#38bdf8;}
+.status-closed{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:#4ade80;}
+
+/* DESKTOP TABLE */
+.table-wrap{padding:0 16px 20px;overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:800px;}
+thead th{background:#19224A;color:#6FC7D1;font-weight:700;padding:10px 12px;text-align:left;letter-spacing:.5px;text-transform:uppercase;font-size:10px;border-bottom:2px solid #5FAEB6;white-space:nowrap;}
+tbody tr{border-bottom:1px solid rgba(95,174,182,.1);transition:background .15s;cursor:pointer;}
+tbody tr:hover{background:rgba(95,174,182,.07);}
+tbody td{padding:9px 12px;color:#c8eaee;vertical-align:middle;}
+.td-date{color:#A9D1DA;white-space:nowrap;font-size:11px;}
+.td-name{font-weight:600;color:#fff;}
+.td-tech{color:#6FC7D1;font-weight:500;}
+.td-loc{color:#A9D1DA;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.systems-tags{display:flex;flex-wrap:wrap;gap:4px;}
+.tag{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap;}
+.tag.cctv{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:#f87171;}
+.tag.network{background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.3);color:#38bdf8;}
+.tag.smart{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);color:#fbbf24;}
+.tag.sound{background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);color:#a78bfa;}
+.action-badge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;display:inline-block;}
+.action-quot{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:#4ade80;}
+.action-follow{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);color:#fbbf24;}
+.action-wait{background:rgba(100,116,139,.15);border:1px solid rgba(100,116,139,.3);color:#94a3b8;}
+
+/* MOBILE CARDS (shown below 700px) */
+.cards-wrap{padding:0 12px 20px;display:none;flex-direction:column;gap:10px;}
+.survey-card{background:rgba(34,59,115,.5);border:1px solid rgba(95,174,182,.2);border-radius:12px;padding:14px;cursor:pointer;transition:background .15s;}
+.survey-card:active{background:rgba(95,174,182,.1);}
+.card-row1{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.card-name{font-size:14px;font-weight:700;color:#fff;}
+.card-date{font-size:10px;color:#A9D1DA;text-align:right;}
+.card-row2{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center;}
+.card-tech{font-size:11px;color:#6FC7D1;font-weight:600;}
+.card-loc{font-size:11px;color:#A9D1DA;}
+.card-row3{display:flex;justify-content:space-between;align-items:center;}
+
+@media(max-width:700px){
+  .table-wrap{display:none;}
+  .cards-wrap{display:flex;}
+  .topbar-sub{display:none;}
+}
+
+/* EMPTY / LOADING */
+.empty-state{text-align:center;padding:60px 20px;color:#A9D1DA;}
+.empty-icon{font-size:40px;margin-bottom:12px;}
+.empty-txt{font-size:14px;font-weight:600;margin-bottom:6px;}
+.empty-sub{font-size:12px;color:#64748b;}
+.loading{text-align:center;padding:60px 20px;color:#A9D1DA;}
+.spin{display:inline-block;width:32px;height:32px;border:3px solid rgba(95,174,182,.2);border-top-color:#5FAEB6;border-radius:50%;animation:spin .7s linear infinite;margin-bottom:12px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;}
+.modal-bg.open{display:flex;}
+.modal{background:#1c2d5c;border:1px solid rgba(95,174,182,.25);border-radius:16px;width:100%;max-width:520px;max-height:85vh;overflow-y:auto;}
+.modal-header{padding:14px 18px;border-bottom:1px solid rgba(95,174,182,.2);display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-size:14px;font-weight:700;color:#fff;}
+.modal-close{width:30px;height:30px;border-radius:8px;background:rgba(95,174,182,.1);border:none;color:#A9D1DA;font-size:18px;cursor:pointer;}
+.modal-body{padding:14px 18px;}
+.modal-section{margin-bottom:14px;}
+.modal-sec-title{font-size:10px;font-weight:700;color:#6FC7D1;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid rgba(95,174,182,.15);}
+.modal-row{display:flex;gap:8px;margin-bottom:5px;font-size:12px;}
+.modal-key{color:#A9D1DA;min-width:100px;font-weight:500;}
+.modal-val{color:#e8f4f6;font-weight:500;flex:1;}
+.modal-footer{padding:10px 18px;border-top:1px solid rgba(95,174,182,.15);display:flex;gap:8px;flex-wrap:wrap;}
+.modal-btn{flex:1;min-width:100px;height:40px;border-radius:10px;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:none;display:flex;align-items:center;justify-content:center;gap:5px;}
+.modal-btn.quot{background:linear-gradient(135deg,#5FAEB6,#6FC7D1);color:#19224A;}
+.modal-btn.wa{background:#25D366;color:#fff;}
+.modal-btn.status{background:rgba(95,174,182,.15);border:1px solid rgba(95,174,182,.3);color:#6FC7D1;}
+
+/* STATUS DROPDOWN in modal */
+.status-select{width:100%;height:40px;background:rgba(34,59,115,.8);border:1.5px solid rgba(95,174,182,.3);border-radius:10px;color:#e8f4f6;font-family:'Montserrat',sans-serif;font-size:13px;padding:0 12px;outline:none;cursor:pointer;margin-top:8px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="brand">VYRA</span>
+  <span class="topbar-sub">Survey Dashboard</span>
+  <div class="topbar-space"></div>
+  <button class="tb-btn btn-refresh" onclick="loadData()">↻ Refresh</button>
+  <a class="tb-btn btn-survey" href="index.html">＋ Survey</a>
+</div>
+
+<div class="stats">
+  <div class="stat-card"><div class="stat-num" id="stat-total">—</div><div class="stat-lbl">Total Surveys</div></div>
+  <div class="stat-card"><div class="stat-num" id="stat-today">—</div><div class="stat-lbl">Today</div></div>
+  <div class="stat-card"><div class="stat-num" id="stat-quot">—</div><div class="stat-lbl">Pending Quotation</div></div>
+  <div class="stat-card"><div class="stat-num" id="stat-week">—</div><div class="stat-lbl">This Week</div></div>
+</div>
+
+<div class="filters">
+  <input class="search-box" type="text" id="search" placeholder="🔍 Search client, technician, location…" oninput="filterRows()"/>
+  <select class="filter-select" id="filter-system" onchange="filterRows()">
+    <option value="">All Systems</option>
+    <option value="CCTV">CCTV</option>
+    <option value="Network">Network</option>
+    <option value="Smart">Smart</option>
+    <option value="Sound">Sound</option>
+  </select>
+  <select class="filter-select" id="filter-status" onchange="filterRows()">
+    <option value="">All Status</option>
+    <option value="Pending">Pending</option>
+    <option value="Quoted">Quoted</option>
+    <option value="Closed">Closed</option>
+  </select>
+  <span class="count-badge" id="count-badge"></span>
+</div>
+
+<!-- DESKTOP TABLE -->
+<div class="table-wrap">
+  <div class="loading" id="loading-state"><div class="spin"></div><div>Loading surveys…</div></div>
+  <div id="empty-state" class="empty-state" style="display:none">
+    <div class="empty-icon">📋</div>
+    <div class="empty-txt">No surveys found</div>
+    <div class="empty-sub">Try adjusting filters</div>
+  </div>
+  <table id="main-table" style="display:none">
+    <thead>
+      <tr>
+        <th>Date</th><th>Client</th><th>Technician</th><th>Location</th>
+        <th>Systems</th><th>Next Action</th><th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+  </table>
+</div>
+
+<!-- MOBILE CARDS -->
+<div class="cards-wrap" id="cards-wrap"></div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-bg" id="modal-bg" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Survey Details</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="modal-btn quot" onclick="modalQuotation()">📄 Quotation</button>
+      <button class="modal-btn wa" onclick="modalWhatsApp()">💬 WhatsApp</button>
+      <button class="modal-btn status" onclick="showStatusPicker()">🏷 Status</button>
+    </div>
+    <div id="status-picker" style="display:none;padding:0 18px 14px;">
+      <select class="status-select" id="status-select" onchange="saveStatus()">
+        <option value="Pending">🟡 Pending</option>
+        <option value="Quoted">🔵 Quoted</option>
+        <option value="Closed">🟢 Closed</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<script>
+const SHEET_ID = '1OxgkdcXt9dIsqXYXMeLJ-nA--L7dhnkso9G0EVpu8iI';
+const SHEET_NAME = 'Responses';
+const STATUS_KEY = 'vyra_statuses';
+
+const COLS = {
+  date:0, name:1, tech:2, phone:3, location:4, propType:5,
+  floors:6, area:7, systems:8,
+  cctvAreas:9, cctvLight:10, cctvNight:11, cctvCable:12, cctvNotes:13,
+  netRouter:14, netIssues:15, netUsage:16, netCat6:17, netPoE:18,
+  smartSys:19, smartCtrl:20,
+  soundSpace:21, soundUse:22, soundZones:23, soundNotes:24,
+  infraPower:25, infraCable:26, infraRack:27,
+  techObs:28, techRisks:29, techDesign:30,
+  action:31
+};
+
+let allRows = [];
+let currentRow = null;
+let currentRowIdx = null;
+
+// ── Status stored locally by row key (date+name) ──
+function getStatuses(){ try{ return JSON.parse(localStorage.getItem(STATUS_KEY)||'{}'); }catch(e){ return {}; } }
+function rowKey(r){ return (r[COLS.date]||'')+'|'+(r[COLS.name]||''); }
+function getStatus(r){ return getStatuses()[rowKey(r)] || 'Pending'; }
+function setStatus(r, s){ const m=getStatuses(); m[rowKey(r)]=s; localStorage.setItem(STATUS_KEY,JSON.stringify(m)); }
+
+async function loadData() {
+  document.getElementById('loading-state').style.display='block';
+  document.getElementById('main-table').style.display='none';
+  document.getElementById('empty-state').style.display='none';
+  document.getElementById('cards-wrap').innerHTML='';
+
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+    const res  = await fetch(url);
+    const text = await res.text();
+    const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+    const rows = json.table.rows;
+    allRows = rows.map(r => r.c.map(c => (c && c.v !== null) ? String(c.v) : ''));
+    renderTable(allRows);
+    renderCards(allRows);
+    updateStats(allRows);
+  } catch(e) {
+    document.getElementById('loading-state').innerHTML = '<div style="color:#f87171;padding:20px">⚠️ Could not load data. Check Sheet ID and make sure the sheet is publicly viewable.</div>';
+  }
+}
+
+function updateStats(rows) {
+  const today = new Date().toLocaleDateString('en-GB');
+  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate()-7);
+  let todayCount=0, quotCount=0, weekCount=0;
+  rows.forEach(r => {
+    if((r[COLS.date]||'').includes(today)) todayCount++;
+    try{ const d=new Date(r[COLS.date]); if(d>=weekAgo) weekCount++; }catch(e){}
+    if((r[COLS.action]||'').toLowerCase().includes('quotation')) quotCount++;
+  });
+  document.getElementById('stat-total').textContent = rows.length;
+  document.getElementById('stat-today').textContent = todayCount;
+  document.getElementById('stat-quot').textContent  = quotCount;
+  document.getElementById('stat-week').textContent  = weekCount;
+}
+
+function getSystemTags(sys) {
+  if(!sys) return '';
+  return sys.split(',').map(s => {
+    s=s.trim();
+    const cls = s.toLowerCase().includes('cctv') ? 'cctv'
+              : s.toLowerCase().includes('network')||s.toLowerCase().includes('net') ? 'network'
+              : s.toLowerCase().includes('smart') ? 'smart'
+              : s.toLowerCase().includes('sound') ? 'sound' : '';
+    return `<span class="tag ${cls}">${s}</span>`;
+  }).join('');
+}
+
+function getActionBadge(action) {
+  if(!action) return '';
+  const cls = action.toLowerCase().includes('quotation') ? 'action-quot'
+            : action.toLowerCase().includes('follow')    ? 'action-follow' : 'action-wait';
+  const short = action.replace('Send formal quotation to client','📄 Quotation')
+                      .replace('Schedule a follow-up visit','📅 Follow-up')
+                      .replace('Waiting for client decision','⏳ Waiting');
+  return `<span class="action-badge ${cls}">${short}</span>`;
+}
+
+function getStatusBadge(r) {
+  const s = getStatus(r);
+  const cls = s==='Quoted' ? 'status-quoted' : s==='Closed' ? 'status-closed' : 'status-pending';
+  const icon = s==='Quoted'?'🔵':s==='Closed'?'🟢':'🟡';
+  return `<span class="status-badge ${cls}">${icon} ${s}</span>`;
+}
+
+function formatDate(d) {
+  if(!d) return '—';
+  try{
+    const dt=new Date(d);
+    if(isNaN(dt)) return d;
+    return dt.toLocaleDateString('en-GB')+'<br><small style="opacity:.6">'+dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})+'</small>';
+  }catch(e){ return d; }
+}
+
+function renderTable(rows) {
+  document.getElementById('loading-state').style.display='none';
+  if(rows.length===0){
+    document.getElementById('main-table').style.display='none';
+    document.getElementById('empty-state').style.display='block';
+    document.getElementById('count-badge').textContent='0 results';
+    return;
+  }
+  document.getElementById('empty-state').style.display='none';
+  document.getElementById('main-table').style.display='table';
+  document.getElementById('count-badge').textContent=rows.length+' survey'+(rows.length!==1?'s':'');
+  document.getElementById('table-body').innerHTML = rows.map(r => `
+    <tr onclick="openModal(${allRows.indexOf(r)})">
+      <td class="td-date">${formatDate(r[COLS.date])}</td>
+      <td class="td-name">${r[COLS.name]||'—'}</td>
+      <td class="td-tech">${r[COLS.tech]||'—'}</td>
+      <td class="td-loc">${r[COLS.location]||'—'}</td>
+      <td><div class="systems-tags">${getSystemTags(r[COLS.systems])}</div></td>
+      <td>${getActionBadge(r[COLS.action])}</td>
+      <td>${getStatusBadge(r)}</td>
+    </tr>`).join('');
+}
+
+function renderCards(rows) {
+  document.getElementById('loading-state').style.display='none';
+  const wrap = document.getElementById('cards-wrap');
+  if(rows.length===0){ wrap.innerHTML=''; return; }
+  wrap.innerHTML = rows.map(r => `
+    <div class="survey-card" onclick="openModal(${allRows.indexOf(r)})">
+      <div class="card-row1">
+        <div>
+          <div class="card-name">${r[COLS.name]||'—'}</div>
+          <div class="card-tech">👷 ${r[COLS.tech]||'—'}</div>
+        </div>
+        <div class="card-date">${(r[COLS.date]||'').split(' ')[0]||'—'}</div>
+      </div>
+      <div class="card-row2">
+        <span style="font-size:11px;color:#A9D1DA">📍 ${r[COLS.location]||'—'}</span>
+        <span style="font-size:11px;color:#A9D1DA">🏠 ${r[COLS.propType]||'—'}</span>
+      </div>
+      <div class="card-row2">${getSystemTags(r[COLS.systems])}</div>
+      <div class="card-row3">
+        ${getActionBadge(r[COLS.action])}
+        ${getStatusBadge(r)}
+      </div>
+    </div>`).join('');
+}
+
+function filterRows() {
+  const q   = document.getElementById('search').value.toLowerCase();
+  const sys = document.getElementById('filter-system').value.toLowerCase();
+  const sta = document.getElementById('filter-status').value;
+  const filtered = allRows.filter(r => {
+    const text = [r[COLS.name],r[COLS.location],r[COLS.tech],r[COLS.propType]].join(' ').toLowerCase();
+    const sysMatch = !sys || (r[COLS.systems]||'').toLowerCase().includes(sys);
+    const staMatch = !sta || getStatus(r) === sta;
+    return text.includes(q) && sysMatch && staMatch;
+  });
+  renderTable(filtered);
+  renderCards(filtered);
+}
+
+// ── MODAL ──
+function openModal(idx) {
+  currentRow = allRows[idx];
+  currentRowIdx = idx;
+  document.getElementById('modal-title').textContent = currentRow[COLS.name] || 'Survey Details';
+  document.getElementById('status-picker').style.display='none';
+  document.getElementById('status-select').value = getStatus(currentRow);
+
+  const r = currentRow;
+  const sections = [
+    {title:'Client & Property', rows:[
+      ['Client',r[COLS.name]],['Technician',r[COLS.tech]||'—'],['Phone',r[COLS.phone]],
+      ['Location',r[COLS.location]],['Property',r[COLS.propType]],
+      ['Floors',r[COLS.floors]],['Area',r[COLS.area]+' m²'],
+      ['Systems',r[COLS.systems]],['Status',getStatus(r)],['Date',r[COLS.date]]
+    ]},
+    r[COLS.cctvAreas] ? {title:'CCTV',rows:[
+      ['Areas',r[COLS.cctvAreas]],['Lighting',r[COLS.cctvLight]],
+      ['Night',r[COLS.cctvNight]],['Cable',r[COLS.cctvCable]],['Notes',r[COLS.cctvNotes]]
+    ]} : null,
+    r[COLS.netRouter] ? {title:'Network',rows:[
+      ['Router',r[COLS.netRouter]],['Issues',r[COLS.netIssues]],
+      ['High Usage',r[COLS.netUsage]],['Cat6',r[COLS.netCat6]],['PoE',r[COLS.netPoE]]
+    ]} : null,
+    r[COLS.smartSys] ? {title:'Smart',rows:[['Sub-systems',r[COLS.smartSys]],['Control',r[COLS.smartCtrl]]]} : null,
+    r[COLS.soundSpace] ? {title:'Sound',rows:[
+      ['Space',r[COLS.soundSpace]],['Use',r[COLS.soundUse]],
+      ['Zones',r[COLS.soundZones]],['Notes',r[COLS.soundNotes]]
+    ]} : null,
+    {title:'Infrastructure',rows:[['Power',r[COLS.infraPower]],['Paths',r[COLS.infraCable]],['Rack',r[COLS.infraRack]]]},
+    r[COLS.techObs] ? {title:'Field Notes',rows:[['Observations',r[COLS.techObs]],['Risks',r[COLS.techRisks]],['Design',r[COLS.techDesign]]]} : null,
+    {title:'Next Action',rows:[['Action',r[COLS.action]]]}
+  ].filter(Boolean);
+
+  document.getElementById('modal-body').innerHTML = sections.map(s => `
+    <div class="modal-section">
+      <div class="modal-sec-title">${s.title}</div>
+      ${s.rows.filter(([,v])=>v).map(([k,v])=>`
+        <div class="modal-row"><span class="modal-key">${k}</span><span class="modal-val">${v||'—'}</span></div>`).join('')}
+    </div>`).join('');
+
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+function closeModal(e) {
+  if(!e || e.target===document.getElementById('modal-bg'))
+    document.getElementById('modal-bg').classList.remove('open');
+}
+
+function showStatusPicker() {
+  const p = document.getElementById('status-picker');
+  p.style.display = p.style.display==='none' ? 'block' : 'none';
+}
+
+function saveStatus() {
+  const s = document.getElementById('status-select').value;
+  if(currentRow){ setStatus(currentRow,s); }
+  document.getElementById('status-picker').style.display='none';
+  filterRows(); // re-render with new status
+  document.getElementById('modal-bg').classList.remove('open');
+}
+
+function modalQuotation() {
+  if(!currentRow) return;
+  const r = currentRow;
+  const params = new URLSearchParams({
+    name:r[COLS.name]||'', phone:r[COLS.phone]||'',
+    address:r[COLS.location]||'', tech:r[COLS.tech]||'',
+    systems:r[COLS.systems]||''
+  });
+  window.open('quotation.html?'+params.toString(),'_blank');
+}
+
+function modalWhatsApp() {
+  if(!currentRow) return;
+  const r = currentRow;
+  const msg = [
+    '🔵 *VYRA Systems — Site Survey*','',
+    `👤 *Client:* ${r[COLS.name]}`,
+    `👷 *Technician:* ${r[COLS.tech]||'—'}`,
+    `📞 *Phone:* ${r[COLS.phone]}`,
+    `📍 *Location:* ${r[COLS.location]}`,
+    `🏠 *Property:* ${r[COLS.propType]}`,
+    `⚙️ *Systems:* ${r[COLS.systems]}`,
+    `📋 *Next Action:* ${r[COLS.action]}`,
+    `🏷 *Status:* ${getStatus(r)}`
+  ].join('\n');
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+
+loadData();
+</script>
+</body>
+</html>

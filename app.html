@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#19224A"/>
+<link rel="manifest" href="manifest.json"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="VYRA Systems"/>
+<meta name="application-name" content="VYRA Systems"/>
+<link rel="apple-touch-icon" href="icons/icon-192.png"/>
+<title>VYRA Systems v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --navy:#19224A;--blue:#223B73;--teal:#5FAEB6;--teal2:#6FC7D1;
+  --light:#A9D1DA;--bg:#0d1526;--card:#19224A;--card2:#1c2d5c;
+  --text:#e8f4f6;--muted:#A9D1DA;--border:rgba(95,174,182,.2);
+  --r:12px;--nav-h:64px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:"Montserrat","Arial",sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
+
+/* ── SCREENS ── */
+.screen{position:fixed;inset:0;display:none;flex-direction:column;background:var(--bg);overflow-y:auto;z-index:10;}
+.screen.active{display:flex;}
+
+/* ── LOGIN ── */
+.login-wrap{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;}
+.login-logo{width:70px;height:70px;object-fit:contain;margin-bottom:12px;}
+.login-brand{font-size:22px;font-weight:900;color:var(--navy);letter-spacing:2px;margin-bottom:4px;}
+.login-sub{font-size:11px;color:var(--teal);font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-bottom:32px;}
+.login-card{width:100%;max-width:360px;background:#fff;border-radius:16px;padding:28px 24px;box-shadow:0 8px 40px rgba(0,0,0,.15);}
+.login-title{font-size:17px;font-weight:800;color:var(--navy);margin-bottom:20px;}
+.fld{margin-bottom:14px;}
+.fld label{display:block;font-size:11px;font-weight:700;color:#555;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.fld input{width:100%;height:44px;border:1.5px solid #dde;border-radius:8px;padding:0 12px;font-family:inherit;font-size:14px;color:#111;outline:none;transition:border .15s;}
+.fld input:focus{border-color:var(--teal);}
+.btn-primary{width:100%;height:46px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px;}
+.btn-primary:active{opacity:.85;}
+.login-toggle{text-align:center;margin-top:14px;font-size:12px;color:#888;}
+.login-toggle span{color:var(--teal);font-weight:700;cursor:pointer;}
+.login-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:10px 14px;font-size:12px;color:#f87171;margin-bottom:14px;display:none;}
+
+/* ── PENDING SCREEN ── */
+.pending-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center;}
+.pending-icon{font-size:50px;margin-bottom:16px;}
+.pending-title{font-size:18px;font-weight:800;color:var(--teal);margin-bottom:8px;}
+.pending-sub{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:24px;}
+.btn-outline{height:40px;padding:0 20px;border-radius:10px;border:1.5px solid var(--teal);background:transparent;color:var(--teal);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;}
+
+/* ── TOPBAR ── */
+.topbar{height:52px;background:linear-gradient(90deg,var(--navy),var(--blue));border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0;position:sticky;top:0;z-index:50;}
+.topbar-logo{width:28px;height:28px;object-fit:contain;}
+.topbar-brand{font-size:14px;font-weight:900;letter-spacing:2px;background:linear-gradient(135deg,var(--teal2),var(--light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.topbar-title{font-size:12px;color:var(--muted);font-weight:500;}
+.topbar-space{flex:1;}
+.topbar-user{font-size:11px;color:var(--muted);font-weight:600;text-align:right;}
+.topbar-user small{display:block;font-size:10px;color:var(--teal);font-weight:500;}
+.btn-icon{width:34px;height:34px;border-radius:8px;border:none;background:rgba(95,174,182,.15);color:var(--teal2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+/* ── MAIN APP ── */
+#main-app{position:fixed;inset:0;display:none;flex-direction:column;}
+#main-app.active{display:flex;}
+.app-body{flex:1;overflow:hidden;position:relative;}
+.app-screen{position:absolute;inset:0;overflow-y:auto;display:none;padding-bottom:calc(var(--nav-h) + 8px);}
+.app-screen.active{display:block;}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{height:var(--nav-h);background:linear-gradient(180deg,var(--navy),#111c3a);border-top:1px solid var(--border);display:flex;flex-shrink:0;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;transition:all .15s;border:none;background:transparent;color:rgba(169,209,218,.5);font-family:inherit;}
+.nav-item.active{color:var(--teal2);}
+.nav-item .ni{font-size:20px;}
+.nav-item .nl{font-size:9px;font-weight:600;letter-spacing:.3px;}
+
+/* ── CARDS ── */
+.card{background:linear-gradient(135deg,rgba(34,59,115,.6),rgba(28,45,92,.8));border:1px solid var(--border);border-radius:var(--r);padding:16px;}
+.section-title{font-size:11px;font-weight:700;color:var(--teal2);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;}
+
+/* ── HOME SCREEN ── */
+.home-header{padding:16px 16px 8px;}
+.home-welcome{font-size:18px;font-weight:800;color:#fff;}
+.home-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:8px 16px;}
+.stat-card{background:linear-gradient(135deg,rgba(34,59,115,.6),rgba(28,45,92,.8));border:1px solid var(--border);border-radius:var(--r);padding:14px;}
+.stat-num{font-size:28px;font-weight:900;color:var(--teal2);line-height:1;}
+.stat-lbl{font-size:10px;color:var(--muted);margin-top:3px;font-weight:600;}
+.recent-section{padding:8px 16px 0;}
+.survey-item{background:rgba(34,59,115,.4);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;}
+.si-name{font-size:13px;font-weight:700;color:#fff;}
+.si-meta{font-size:11px;color:var(--muted);margin-top:3px;}
+.si-tags{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;}
+.tag{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;}
+.tag-cctv{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:#f87171;}
+.tag-net{background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.3);color:#38bdf8;}
+.tag-smart{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);color:#fbbf24;}
+.tag-sound{background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);color:#a78bfa;}
+.si-status{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;margin-left:auto;}
+.st-pending{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:#fbbf24;}
+.st-quoted{background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.3);color:#38bdf8;}
+.st-closed{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:#4ade80;}
+
+/* ── NEW SURVEY ── */
+.survey-wrap{padding:0 0 16px;}
+.step-hdr{padding:14px 16px 10px;background:linear-gradient(90deg,rgba(25,34,74,.8),rgba(34,59,115,.4));border-bottom:1px solid var(--border);}
+.step-num{font-size:10px;color:var(--teal);font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.step-name{font-size:16px;font-weight:800;color:#fff;margin-top:2px;}
+.prog-track{height:3px;background:rgba(95,174,182,.15);margin:0;}
+.prog-fill{height:3px;background:linear-gradient(90deg,var(--teal),var(--teal2));transition:width .4s;}
+.step-body{padding:14px 16px;}
+.qblock{margin-bottom:16px;}
+.qlabel{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;}
+.finput{width:100%;height:44px;background:rgba(34,59,115,.5);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:14px;padding:0 14px;outline:none;}
+.finput:focus{border-color:var(--teal);}
+.finput::placeholder{color:rgba(169,209,218,.4);}
+.ftextarea{width:100%;min-height:80px;background:rgba(34,59,115,.5);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:13px;padding:10px 14px;outline:none;resize:vertical;}
+.ftextarea:focus{border-color:var(--teal);}
+.ftextarea::placeholder{color:rgba(169,209,218,.4);}
+.tiles{display:flex;flex-wrap:wrap;gap:8px;}
+.tile{cursor:pointer;}
+.tile input{display:none;}
+.tile-body{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border);background:rgba(34,59,115,.3);font-size:12px;font-weight:600;color:var(--muted);transition:all .15s;}
+.tile input:checked + .tile-body{border-color:var(--teal);background:rgba(95,174,182,.15);color:var(--teal2);}
+.tile-sq{width:14px;height:14px;border-radius:3px;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;}
+.tile input[type=checkbox]:checked + .tile-body .tile-sq::after{content:"✓";}
+.tile-mark{width:12px;height:12px;border-radius:50%;border:1.5px solid currentColor;flex-shrink:0;}
+.tile input[type=radio]:checked + .tile-body .tile-mark{background:currentColor;}
+.yesno{display:flex;gap:8px;}
+.yesno .tile-body{padding:8px 20px;}
+.irow{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.step-nav{padding:12px 16px;display:flex;gap:10px;}
+.btn-back{flex:0 0 100px;height:46px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-next{flex:1;height:46px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--navy);font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;}
+.btn-submit{flex:1;height:46px;border-radius:10px;border:none;background:linear-gradient(135deg,#19c26e,#10b955);color:#fff;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;}
+.sum-banner{text-align:center;padding:30px 20px 20px;}
+.sum-check{width:60px;height:60px;border-radius:50%;border:3px solid var(--teal);background:rgba(95,174,182,.1);display:flex;align-items:center;justify-content:center;font-size:26px;color:var(--teal2);margin:0 auto 12px;}
+.sum-actions{display:flex;gap:10px;padding:0 16px;}
+.btn-act{flex:1;height:44px;border-radius:10px;border:none;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;}
+.btn-quot{background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;}
+.btn-wa{background:#25D366;color:#fff;}
+.btn-new{width:calc(100% - 32px);margin:10px 16px 0;height:44px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;}
+
+/* ── SURVEYS LIST ── */
+.surveys-toolbar{padding:12px 16px;display:flex;gap:8px;flex-wrap:wrap;}
+.search-box{flex:1;min-width:140px;height:38px;background:rgba(34,59,115,.6);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:13px;padding:0 12px;outline:none;}
+.search-box::placeholder{color:rgba(169,209,218,.4);}
+.filter-sel{height:38px;background:rgba(34,59,115,.6);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:12px;padding:0 10px;outline:none;cursor:pointer;}
+.filter-sel option{background:#1c2d5c;}
+.surveys-list{padding:0 16px;}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:flex-end;justify-content:center;padding:0;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--card2);border-radius:20px 20px 0 0;width:100%;max-height:88vh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom);}
+.modal-hdr{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card2);z-index:1;}
+.modal-title{font-size:15px;font-weight:800;color:#fff;}
+.modal-close{width:30px;height:30px;border-radius:8px;background:rgba(95,174,182,.1);border:none;color:var(--muted);font-size:18px;cursor:pointer;}
+.modal-body{padding:14px 18px;}
+.modal-sec{margin-bottom:14px;}
+.modal-sec-title{font-size:10px;font-weight:700;color:var(--teal2);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.modal-row{display:flex;gap:8px;margin-bottom:5px;font-size:12px;}
+.modal-key{color:var(--muted);min-width:100px;font-weight:500;}
+.modal-val{color:var(--text);flex:1;font-weight:500;}
+.modal-footer{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;}
+.modal-btn{flex:1;min-width:80px;height:42px;border-radius:10px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;border:none;display:flex;align-items:center;justify-content:center;gap:5px;}
+.mb-quot{background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--navy);}
+.mb-wa{background:#25D366;color:#fff;}
+.mb-print{background:rgba(95,174,182,.15);border:1px solid var(--border);color:var(--teal2);}
+.status-pick{padding:10px 18px 14px;}
+.status-sel{width:100%;height:42px;background:rgba(34,59,115,.8);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:13px;padding:0 12px;outline:none;cursor:pointer;}
+
+/* ── ADMIN ── */
+.admin-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--navy);padding:0 16px;}
+.admin-tab{padding:12px 16px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;}
+.admin-tab.active{color:var(--teal2);border-bottom-color:var(--teal2);}
+.admin-panel{padding:14px 16px;display:none;}
+.admin-panel.active{display:block;}
+.user-card{background:rgba(34,59,115,.4);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+.user-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:var(--navy);flex-shrink:0;}
+.user-info{flex:1;}
+.user-name{font-size:13px;font-weight:700;color:#fff;}
+.user-email{font-size:11px;color:var(--muted);margin-top:1px;}
+.role-badge{padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;flex-shrink:0;}
+.role-admin{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:#fbbf24;}
+.role-tech{background:rgba(95,174,182,.12);border:1px solid var(--border);color:var(--teal2);}
+.role-manager{background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3);color:#a78bfa;}
+.role-pending{background:rgba(100,116,139,.15);border:1px solid rgba(100,116,139,.3);color:#94a3b8;}
+.btn-sm{height:30px;padding:0 12px;border-radius:8px;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:rgba(95,174,182,.1);color:var(--teal2);}
+.audit-item{border-bottom:1px solid var(--border);padding:10px 0;font-size:12px;}
+.audit-action{font-weight:700;color:var(--teal2);}
+.audit-user{color:var(--muted);font-size:11px;margin-top:2px;}
+.audit-time{color:#64748b;font-size:10px;margin-top:1px;}
+.fab{position:fixed;bottom:calc(var(--nav-h) + 16px);right:16px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;color:var(--navy);font-size:24px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(95,174,182,.4);z-index:40;display:flex;align-items:center;justify-content:center;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:calc(var(--nav-h) + 12px);left:50%;transform:translateX(-50%) translateY(20px);background:rgba(25,34,74,.95);border:1px solid var(--teal);color:var(--teal2);padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;opacity:0;transition:all .3s;white-space:nowrap;z-index:200;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── SPINNER ── */
+.spin{display:inline-block;width:20px;height:20px;border:2px solid rgba(95,174,182,.2);border-top-color:var(--teal2);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-center{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:12px;color:var(--muted);}
+
+/* ── ADD USER FORM ── */
+.add-user-form{background:rgba(34,59,115,.3);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px;}
+.add-user-form .fld label{color:var(--muted);}
+.add-user-form .finput{background:rgba(34,59,115,.6);}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div class="screen active" id="s-login">
+  <div class="login-wrap">
+    <img class="login-logo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGgAAABoCAYAAAAdHLWhAAAh6klEQVR42u2deXhU5fXHP++9d/bJzCQk7Mi+KouAiigqiiJqEaWoaNVWq61aVNzFBXBXlOJS963WVqtWW4vWBRRRUFFQFgHZdwLZJslk1rv8/rj3DpNkQiYsgv5yn2eeJ5DMct/ve875nu855x1hGIZB83XQXlLzEjQD1Hw1A9QMUPPVDFDz1QxQM0DNVzNAzQA1X80ANV85X0rzEuzbqyHdTOwpQGkpToif5AbEz3XRDSO9+EadexFC7Pp5b1/LwiL9759aLDUOcpAMwLAWUNRZ/Fyeq+k6epYVlSWBvAdGoFTVxDAUGcXlRGQgqusG6DqGrqNrOpIQSJKwbsD8OEYuNp7xmWQh4XcqBxVIhmHeiQFIFhiizkImVI1wPEl5LEFZLE5ZLEFFLE44lqQmlaImqRJXNVK6TkrTUHWjjkMSOCQJhyxwyjIeRcbrcOBzKgTdTkJuFwUeF/keF/luJwGXE7/TYT7zwsvvM+YuXE6Ldi1xBP24CwK4CwI4Q3m4Aj4Urxun100sqRKLJdI7QZak9M+ZoNX3aSKNU1LTuWXYAAa1KUQ3DCRxYGDSLQuREPU8ezieZEtVhA0V1WyojLC1KsLOmjiV8SQxVSWl6eiW00lbmBBI1q0KRP3dZ1iWiWFuCMNAtyw1zdaECaJLkQm4nHgcMqf3OATxwUdfG2PPvw1FCHRdN99YlpAdCorHheLz4isMct7vRtO5T2c2h6spiyUojyWIJFPEUiqyJFAkCaMRuhhXNTqE/Dw66hg8itwk97H3lmIuSl03UxZLsKo0zPKSCn4sDbOlqoZwPElS00wXY21ERQjTwup8ZiPrz0bW6Ct2E48zAUxpOookMf3Uo80YNPqcW5n16bcEg350XTetwTAwdB1hGNREYvTt05l5s59CdjsBiKZUKuJJyqJxXli0kjVllbgUmd2FNFmSCMcTnN2nC1ce0QfNMPbILzc1ntR1W+srqlm0vZTvtpeyprySilgCzTBQJAmHLKFIAslaPnvhbCvY35csCSrjSX7Tvwe/HdADecqUKVP8Pg+vvzUbj9uJrum2vwJJgCThzfOycu1W3H4Pw47uh6ZpuBSFgMtBK78Hv8vBJ+u34ZZl9EZci1tRWLaznD4t82mX50M3jHo+f18Bk97xQrC1qoYP12zmhUU/8tqyNczfXMz26igG4FYU3IqMQ5aQ0qDsevxUlwBSukG+x8UNQ/vjUmSEpuuGrumMOGMi3yxaid/nSbs6MmikqmqEgn6+/PRpWhaFTAzFrsWY+MGXrCmvxKMoaR+d1dUJQULVaBPw8uioY/Aqci1aua+AAdNVfL11J7PXbWVJcRmViWTaz++KnQYHS81fFoLKRJI/DO7DuEO7oBkGkqHrKIrMdRPORVO1rOmQYRi4XA42bdnBE8+8jRCi1kIoksTYPl1M9pJDgHYrMhsqqnnpux8RQuwW0KYEfmFtgOpEindWrGfC+/O4e85C5m0qRjUMgi4nHoeZm2uGkSYL/MRWImxCYcU1SQhkSZDUdDqG8ji9xyEYhsUqDcMwdN005pFnXs/8r5aR5/eiZbEiTdPweNx8+elTtG9bZL6IJDAM84av//BLVpWG8TiURhddEoJoSuWek45gcNuiPWZ1mc+rSaq8t3oj763axNaqGpyyjFuR03+33xNwsYsKNEQAMhmcYYBu/b8AalIqk447nFO7dUjfl2RbiCRJ3Hjt+Q3eiGEYOJ0OduwsZ/pj/0xbkZ0RKZJgfN9uaE1YCFkI/rLgB6qTqVo52J6A8+GaLUx4fx7PfruCsmiCoMuJS5HRLUvZZ0AIc3PJ1sPOnXTDIKXpxFIqkWSKykQy/YgkUyRUk3w5ZJk8p4Min4f2QT89WoTo16qAfq1bcGavTpzUpV06J6ulJOi6jhASo8fdzKw5CwkGfGha9pCv6zpzP3qCQ3t3Rtd1JElKB/vbZi9g4dYSfE5Howtj+9wzenbk2iF9m8TqbHDWVVTx7LcrWLitFKci4bZA2ReY2HmNvXl0w0DVdVTdQNP19EI6ZQmPQyHP5STkdlLgtpJOj4t8t4uA20nQ5cDncOB1KrhkGZci4ZBkFGn395sGSNN0ZFli3pdLGTnmenze+mQBQJZlKsLVjD3zeP7x0p1ouo5sASQJwcrSMNd/+CXORvKiTFcXSaaYPHwwx3RolZOrs/9m9rqtPP71MmIpFb/TUS/5azogIs3idMOwlAE9/X5eh0K+x0WRz0Nbv5e2AR9t/F6KfG4KPC4CLmfapTZd6zM9Ud17r6XF2dZwwSV38da/55AfCqBZCVutRZUkqiNRZr71ICcePzANrn0jf/5yKe+t2kjQ5WzU5Qlhsq2Qx8Vjpx1DvtsFRsParf0es9ZtZdoX3+NSZByS1CTXWitgWy5KMwySminVYIFR5HVzSCiPLvl5dA4FaB/0UeR143UojW6gbEJoOl0VuQvHWQFavmIDx438U4P5iSRJRGpiHDmoNx/PnG7lG9beE4LSaJyrZn5BXFXTdLYxV1eVSHFCl7bcNuzwBl2dDc4POyu46aOvUGQJeQ9YoL1LVV0nrmrohoHf6aBdwEfPFiH6tMynW0GANnleXLLcqKCaufD7Ou2Wp0yZMqU2U9Np1TKfnSUVfPb59/j9HlM4rUMYPG4XP67eRJfObRnQr3saXMO6WVkSzNu8A4+iNAqQAXgUmZWlYVrneeleEKyXwNqLkdB07pqzkHAigVOWcwZHWEFdNwyiKZWkphN0uRjYtpCz+nTm4gE9GN+3G0M6tKJLfoCQ24ViuW490xVlCKqZibAQ+0cArldu0C0ltnhHOUcP/yNV1VGULBKOEIJkMkXbNoXMm/0UwYDPdEsWu9MMg+s/+JLVZZU50W7bzThlmUdPO4Z2ed5a8cj++a3l63hqwXLyPU5U3cjZWhKqRkLTCLld9GtVwDEdWzOgdSEtPK6sQmpTSw37LXnNtCB74XXdIBDwYQAz/zc/qxUBuFwONm/ZiSxLnHTCIHTdSJckFEmifTCPWeu25szMFEkikkyxsTLCSV3a1VLDJSEIx5PM+HIpWg4Jsb3DY6pKQtXoGMpjbJ8u/PGIPpzRsyNd8gN4HUo6LyFTmc4iih6oK2vBzk6iYvEEw06+ijVrt+LxOOuBJDL88ecf/4XePTvWot2Slee8s2J9ToTBjkfhRJLfD+rN+MO6mnKHVRYojsT403tfkNL03RaAZSHS9ZneRfmM7tmRYzu2TseTXfFD7FUheU/zq3QSmsObN1hRtZnZv//7OeddPIVQyJ81L5JlmXC4mtFnHMsbr0xNP88u7UZSKhPen0dpTQyHLOdMg1VdZ9rIo+ldGEovhCQEzy5cwRvL1mYFXAgBhkF1MkWnUB7n9e3GiZ3bphciE+y9AUUSgreXr+fdHzeQ53TuAkrsptpg/V7TdQIuJ5NPGIwvh+LlbkvetjWMOW8SH368gGDQ1wBIEhXhCG+8MpUzzzi2Hu3+estO7vz0G3wOR067TrIsoH3Qz4xTj8ajyOmksCQa58qZn5NQtVoMURKCpKZhGDCmd2fO79cNn0WHbcIhMnKOPWVcdo404f15/FgSxuOQ0XM0JDsxv7B/Dy4b1CunnE9qNIECpt52CW63s0FlwRZTJ9/7ItWRKOZGNt9cNwyOat+SUd0PoSqRzCke6YaBR5FZV17JMwtXmLKS9f9FXjendj+EaEpN35xs6Xr5bhd3nXgElw3qhS+DmEgZslRaqKxDCpoiyK4pq2RTOELQ7cQhm+p4Yw+3IiNLgrZ5Psb26dxACa+JAMmShKbp9O/bjcsvGU04HEHJkinruoHP62bZ8nVMf/yfZgyytpWt2V16eC86BP3ENS0n36sZBgGXk/dXbeKT9dssimxumjG9OtHC6yal68iSIJJS6ZIfYNrIIQxqW4hm7OoxMOqwuYpEim3ROKWJZHoH56oD2n8zd2MxcVU1n2fYMXv3DwFEkilGde9AgcdlWTV7HoPqEoZwZTVDT7yS4h1luLLobJb7R9cN5nzwGH0P7VKPMCzaXsqkWQvwWOwpl0zfpt4zRg2lfcCHqpvl4Je/X8U/lqzGKUt0CPq5f8RRhNzOWkmukfEanxeXsaCknJJ40gRWCPJdTvoVBDmxbRF+RTZVZdEwOMIq218183N21MRwyFJOmp/9GXxOB0+ecSyhRtSSnC0o0wIK8gNMue13RGMJJEnKAqQZi6LROLdOfiYNrL2TNcNgYJtCxh3WxXR1kshpxzokiUgyyZ+/XIqq6+nPM6ZXJ4JuJ25F4c7jBzUITkUiyZ+XreHvazexMRIlaemLqmFQHI3z303beXDxj6yvjqY32e4Y27fbSthslTJyJXGSENSkVH7VsyP5bpdpUTkGwJxaf2XZdHXn/fokThs5hIrKauQsEoim6YSCfj6ctYCX//6BSRSsuGXHo4v696BfqxbUJNWc4pG9874vLuXl71chC4FqGITcTkZ1P4TfHt6TNnneeuAARFWNJ1esZ1VlhIDDgVOWajUIOiRBwKFQlkjylxVr2RaNNwiSvVCz1m5pErkw1Q+N9gEfo3t2NDdOE2hkzr3Z9mveP/UPZkGvgeqrpuvk+T1Mve9Ftm4rQZLMxNf+U4ckcd3QvvicDlK6ntPNarpZDX1z2Vrmb96RFkcv6t8jXX3MBNv2+e9tLmZ9dQ0Bp2LGJaO+hWqGgUeWiaRU3li/1WRkIgs5EIKN4Wq+Ky7LSRmpy0jHHdoVv9OR/mz7HCDJIgy9e3Zk4oRzG7Qik9E52ba9jElTnqtV2LOtqEPAz4SjDiOmajnvJgMDpyLz6FdL2R6JWr15Is3KMhddEoLKZIoFJRX4HEqjkpBmGHgVhVWV1aypjqQLcHWv/63ZTE0ylbMyYisZPQtDjOzW3nJtTSP3TZpuMK1BZ+JV4xh8eE+qI9Gs8UhVNQry8/jnW7N55925aRdJRjw6oVMbxvbpTGU8x3hkgNNq23pk/hJSup614cPeDOuqa6hOpZrU1qXqBivDkXpWZstMn23YjrcJ1mNb/4X9e+Cw6mNNzb2aBJCdj3g8Lqbdd6X5drspkbvdTm6+82l2loRNcOtY0qUDezGwbSGRRCrneOR3OvhuWykvLPox/TrZropEKucEcteOh7J4olYVx379D9dspqQmll7oXAuRQzq0Ykj7lnvcc9Hk+SA7Nxo2tD9X/P5MyiuqGsyNPB4XGzZu59bJz5jg2p2r6SAtceMx/Sn0eUjkmh/pBkG3k38tX8dsKz/KpvHtiZxj1HrerlyqJqXyv9Wb0uX0XJNatyJz8YCeeyWW7tEAl+3q7rj5Ynr36kRNNL4bVxfg1dc/4u135yLLctrV2e1WLX0ebj52QK1MvXF3Z+BVZB7/ailryquyFu0K3a4md60aBrT0uOspBx+v3cKWqhpcspyT9ciW9fyqVye65OftVR/6HgFkBn4IBHxMu+9K1JTa8E3rBl6Pixtve5LtxWVpVpcZj/q1KuCqIw8jkkzlFEQNy5KTmsYDX3xHVSJlyTm7KGyXPB8hl8PMnXIkIQ5Jok8or3b+kkzx7xXrc7YeIUxa3S7g47zDuu4RMdhrgHblRhojTzqSSy8+o2FXZ8WiLVt3ct2tT1jg6rV2m2YYjOregfH9uuVMGky9TmFjOMLD8xdbMpCR/p1PkTmudSFRVWv09RQhqElp9G8RpJPfm275FcB7qzc1yXokBAlV57eH9yTP6djrUZu9mlG1Nbept19Kj24diEbjSFkWQ1U1CkIB3npnDs++9F/L1Wm1dqpu6XUjuranMp5stB1pl17nYN6mYl5YtDL9OraFn9yuJf1bhAhbFpae/7Eedn9btarSyuPmnM7tarUPl8cSvLNiQ87MTRaCaosYDO/Udp+M2OwVQLtkoDweuf8qkkm1QYVW03WCAR+3TXmWZcvXIcvyrnGXDIZ43dC+HN6mkKpEKidLspPYN5at4f3Vm3bFI2FaxmU9OzK0VQuiqkpUVUnpBqphPmKqRnVKpVvAz4RDuxCyhqbsz/TGD2tzZm7Cko98TgeXDey1/0ree0IYNE2jR7cO7NhZzufzlzRYIlcUmZponIWLfmT8uBFpl5guL1sjIEe2a8k3W0sojcZzdi0OWearLTvpVbRrakIS5tzS4S1CdMzzWa225k73OxQ65fkY1aE153Ruh9+h1LKe9RXVPP71MnOkJid2K6iKp7i4fw+O6dialOVa93ZyY5/MqNrCaFV1DcNOvoqNm3fgcbuyNj4qikxJaZhrrhzHI/dfhapqtWKXvbDbq6Pc9PFXlEUTeBS50XK5JAQpTcftkHnw5CG12FNmHFANg4Smo0gCVwbztP/Gfs7tn3zDN1t25tQhKwlBLKXSozDEo6OGEq6qIRTw1apMHxAXV9fVhYJ+pj8wAVXVGs7WVY3CgiB/eeZt3nz7UxRFRs0Sj9rkeZkyfDB+p5JTjqQbBg5ZoiaZ4q7PFlISje+KSdbvdcNAEQKfIuOy3FbmOKMNzqfrt/H1lp1mt2oO+9cwDNANbj5hEO++O5d+gy9i2ozXSCSSaRVlT+1gr11cXVfXrWt7KsIRPp27iDy/N6urA5AVmY8/+YbTTz2aVkX5Vm+4SAOuGQYtPG4Oa1nA3I3bSWpao2OWBuCUZSpiCRYXlzGsY2vc1ryS3amTqXZnTt6ZYcssSd83d1GWQeCGXVs4luTSwb0ZFMrjVxfcTklJBR9/+i2zPvmWrp3b0qVz2/Qm3q9aXG6sTmfKpN8xoF93IpFYA7UjA6dDoao6yiVXPEB1JAqIWrvMpt+9i/KZOnwwTlkmmYMlmeUJhTXllUyZs5AaqzSeaQkiC/XVMQF5cdFKtkeiOOXGiYGZJ6kcWpTPeYd1Zcq0V9i0qZhg0E+LggCLl67hV+fcwhXXPsL2HWW1hOMDApDNxPx+D48/fC1CavgDaZpOIM/Lt4tWcs0Nj5oWaE0M1AXpsJYF3HnCIByyTMo6EqAxZpfncrB0RzmTP/02K0h13aMszE7YD9dsJpBLT7n1PAW4Zfggli1dy+PPvE1+KI9USkVVNXw+D163i+dfnsnxp0xgy9aSJoO0z8/qMbU6jaOPOpSbrh3fYAKbjkctgrzy2oc8/OjrKLKMVid+2SANaN2Cu04cjEORcrMk3cyRlhSXcfvsb6iIJ7KCZLud8liCJxf8YFZKya3zqCqe5PeD+9DO4+LKmx7FqLN5dF1HkiUcisyRg3vTsihUy5UfEIDStSNd56brLmDY0P5UVtU0yGQ0zdTrJt/zAjM/mF+PNGSC1LdlAfeceAQeh0LcarvKxZKW7yznpo++Zn24ulYjienaTGt44utllNTETNdm5JaQDu3QijG9O3H3tL8xb94S8vJqTyZKkkQ0mqDjIa15dNrVOJ2OJqu4++0oGLthZNnydQwfdU16ii/b20mSIJXScDoV3n97GgMH9MhKT+2y9uoyM76UR+N4nQqa3vigWEIzi4PXD+3PCZ3apNutZCF4e8V6nlzwQ47jMiad9ztknjtrOMu/X8WI0dfhcTnr3ZskCSKRGP95435GDB+8R5R7vx1HJlmu7rA+XbjnzsuorGzYinTdwOlUiEbjjP/d1HS/d905WduSurcI8uDJR9Eu4KM6kWpUFrKXLeR20iHos+KO+XpLd5bz4qKV+J2OnGeMUprGDccMwKXpXDFxOuj12ZlDkSkrr2LihHMYMXwwqqbtUT60X8+Ls8sLf7h0NGeNHkZ5RXWD8UjTdHw+D5u37OTciyZTUVFtTu5lAUk3DNoHfDx0ylEc1rKA8G4EVrPjVMfjULhr+BF0zQ9Yh1YIyqJxpn2xuNZMaONqQYLxh3VlcLsirr/jaZYuW2spJ3qt+w5X1nDs0H7ccfPF6SnEA5ao5pLEznjoatq1LSQeT2YVVG3SEAz4WPj9j4z/3RRLfJXq5VJ2sC/wuLlvxJGc0Lkt4VgyLYZmvreq60gC7jx+EJ3z89Llh5Su8+AXi9kRiZoHcOQwT1udSHFk2yJ+O7AXr77+Ec88/29aFARqJeb2WE5+fh7PPnYjLuuQKvFT1oOaXtwzaNumkBkPXk0snthty6uqarTIDzB7ziIuuuxeUik1PRKTDSS3InP7cQM5r29XqhOpWqdWGYaBqhvcMuxw+rYqQLMYlCQET3z9A4u2l+B3OXKSkeKaRiuvm0nDB7Pix41cd+sT5GXRHCVJUBONM+Ohq+nRvQOapmXNBQ8agOzakappjD79GK66/CxKyysbdHUAKYt+/+e9L7j48ntRNbVWoS9z4WyB87JBvbl2aF803TBpuGT2a18zpC9DO7QyiYRVXvjH0jXMtGdo9dzyHWHApOMHISdTXHj5vURr4jjqdMgqikxpWSVXXT6GcWedYMUdee880E91oJ/doxyLJznxtGv4Yfl6/H5Pgw35mcLquLOH8/Izk8yWY4sdZks2JSFYvKOMR+YtYUO4mquH9OXXfTqnQZAlwQdrNjN9/pKcdTZJCKoSSW4c2o+R3Q9h/CV38a+3P6VFi2At1ybLMlXVNRwxsBcf/OdhXE5HeiDsZwFQJvVe9P0qRpwxEVmWGs2s7V152sghvPrCHWbTZAN01abhW6trWLit1OzkNEAzzH7uLzYVc+/cRbhkOaeGeVkSVMQSjD+0K5cd0YcHpv+D26c+S1FhqBY4khCkVA2Xy8GcDx6jZ/dDGtxIB6WLq0u9Bw7owdTbLqEiXN0o9bTVhv999DVnnnMrxTvKTJeZRTG3GV67vF1ttrpVY/pmWwkPfP49Tkky23sb+ayKdSzY8I5tuOyIPrz21mym3vdiPVJgMQNisQRPTJ9Iz+6HoGn7BpyfHCATJLPcPeGKsYw983jKy6t2G4/SxKEgwJdf/8DI0Tfw3eLVKIqctd5kN4/ohoGuG8iSYOH2Uu75bBGSMKWoXJSCqkSKQwtD3DF8MJ98tog/XP0wPq+73nMVRaasvJKbrzufsWcev8f5zkHh4jITUyGgpDTMcadMYHtxGW63M+uC112MSCSGz+fh8UeuYdxZwxus+9vu7putJdwzdxG6btaLcqHTUVWljdfDE2cez7qVGzj5zOuJxxI4rRiY+XnKy6s4Y9RQ3nz1bkstEfv0/LsDcrC5zchaFuXzxPSJlvbW+D4xFWI3hqFzzjm3Mm3GaybdrgOsDc7cjdu5a85CDCM3cOxG96DDwf0jj6aiuJSzf3MHkUgUl8tRJxk1D/Po2eMQnn7shozzEvbtbPgBO3nept4jhg/ixmvHU5aDq5Os8kV5RTWnnjGMUacMqVUEMzJKB++v3sT9n3+HJEgfSNEYOElNxy1L3HfKEPy6zpjz72DL5h34fbXZphCmduhyOfnrs5MoKgxZpGDfD+6LA/klg4YVJ3Rd5/SxN/H5/CWEAv56arZNYxOJJIlkiolXjWPq7ZemD9iwu1RtV/fqktW88v0qvA4lp/qL3c8gAQ+OHELXPC9nnDuJz+Z+R35+Xj1SIEkS4coIrzw3iXPHnoSqaSh7me8clABlUu/1G7Zz/MgJRGqiOBxKraRUUWTClRGKCkM89vA1jDljWDqWSZJIu7SkpvPYV0v5wCq65XLc5S5wDO45+Sh6Bf2MPv92Zs/+pl6uY3+WnSVh7rjlIqZMuqRe08svDiBbKJVlif+89wXnXjSZYMCf4TIEZeWVnDDscJ569Hq6d22flk/s3gVZCIojUabNW8zi4rImHZqR0DQUBPecfBQ9Az5Gn387sz75hqIWQVJ1wHEoMiVllYwfN4JXnrvNotP7Pu4cdAABaTdx6+RnmDbjNVq3akFNTYxEIsWEK8Zy952/x+lQ0Cz5JNOlLdi6kxlfLqUsGje1NT03cGKqhkeWeODUo+ngcjL6/NuZM2chhS1CpFS1nuWEwxGGHNmHmf96CK91xo/Yz4ezHzQAGVZblKaa8WjWR1/RqVt7pt//J84afVwtd2hbjaYbvLpkNf9cthZJgEuWc7McyWz2yHc5mHbasbijcc668E4WLPiBgiyJqCxL1ETjtG9bxKyZf6Zd26J9phT8bADKBGDlqk3cdufTPHjvlXTLcGmZdZt1FVX8ZcEPLC4uI88qJedyK7ZC0Cng55HRx7F9zWbGXHAHG9ZvIxTyZyUEqVQKp8PB+/+exsD+Pfa6GfFnC5BpSbXL9rafT4/z6wb/Wr6O15etJZpS8eVQ8rZVaUmY2toRbQu5f+TRfPbZIn5z2b1UVlaT5/fWA8dmgIlEijdfvYuRI47cr4wt64biILvsY2TsbWPvVAF8t72Uv36/imU7y80DWh25gWPXjipiCc7q3YkJQ/ry3Ev/ZeItT+BQZPw+T1ZwhICqqijPP3mzCc5+Zmw/C4AyF8ee01lRUsF/Vm7gi43F6NYB5bketyxLglhKA13nxmGHM6pbe26642lmPPEGwYAvPb2eLSkuLavkoXuu4DfnnXJAwDloAcokDvZJwv/9cSNt87zo1iHqubq0yliS9nleJp8yhGA8waizb+KjWQsoKgymk+Rsml9JSZibrz+f6yaca7q1AwDOAZV6cvpwlms6u3dnLujfnXA8mVu/tHUaSTiW4OSu7Xlx7IlsW7KaIaf8iU/nLKRlUajBhnY7Eb3isjHcO/lykxBIB26ZDjqSUM+KLEvSDINbZy1gaXFZgy1SNsOrSiQJOR1cfewAjmvXknsf/hsPTP8HkgCv193g9IVDUdhZUsEF553MS89MAvucOSGaAWrM1QnrML+JH8ynIpbAldGJY7uzmKqRVFVO6tKeq487nM3L13PFDTP4fN5iCvIDVvOJ3jA4pRWMO+sEXnnu9lrDZQc0Hv8cAIJdPQfLdlZwy6yvd30jFuZXr9UkU3TLD3Dlsf0ZUBDg0af+xV0PvUKsJkYw6N/tzJIdc3591gm88txtZt3nAH6F288SINhV53lv9Sb+PH8JXodCJJGitc/DBYN6cXrX9sybt5hb73qe+V8tJRT0oyhy440pJWHOP3cEzz95C05LqN0fpYNfPECZID2x4Ac+37Cdc/t3Z3TPjmxcvYm7H36VN9+ZA0Agz7vbyTZhfatlaWklV1w+hsemXVOvbNEM0B6SBlNc1YmmVOJllUx/6i2e/9v7VFfVkB/yA2K35XP7O48qwtXcesNvuOv2S3edaSoOrm95/dkBVJc4/PaP9/PXZ96kdRfz3LhsXwZSV/hMJlUSyRQP3v1H/vSHs9MzOwcbOAd9otoocdB1Hnvoagxd5+///JiiwtDub9ZqOvF6Xbz41C2M+dWwdIuUOEi/Hvlna0GZVqRpOldNnM5zL89MKwSZtyWEQJYlysqr6NXjEF586hYGD+x1wOSbX4ySkItmp1utTk8/dgM3X3c+ZeVV6S/ws12aYRiUlIY58/RjmTVzBoMH9kLTDn5wfvYWlGlJ9gTfw4++zm1TnyMY8KWroB6Pk0k3Xsj1V59nMsGfsJ6zL27uF3Hpum6oqmoYhmE8+9K7hqdwhCEHjjdOOv1a45tFK9N/o+v6z+q+fhEWVCtPsnoWXn39I7ZtL+WGa8Zbh2z8jKzml+bisrG7zH6Bn6p/oBmgpliSroPBQU2h/18D9Eu5pOYlaAao+WoGqBmg5qsZoOarGaBmgJqvZoD+n13/B7AJjkeaiCKjAAAAAElFTkSuQmCC" alt="VYRA"/>
+    <div class="login-brand">VYRA SYSTEMS</div>
+    <div class="login-sub">CCTV · Networking · Smart Systems</div>
+    <div class="login-card">
+      <div class="login-title" id="auth-title">Sign In</div>
+      <div class="login-err" id="auth-err"></div>
+      <div class="fld" id="fld-name" style="display:none">
+        <label>Full Name</label>
+        <input id="reg-name" type="text" placeholder="Your full name"/>
+      </div>
+      <div class="fld">
+        <label>Email</label>
+        <input id="auth-email" type="email" placeholder="you@example.com" autocomplete="email"/>
+      </div>
+      <div class="fld">
+        <label>Password</label>
+        <input id="auth-pass" type="password" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <button class="btn-primary" id="auth-btn" onclick="doAuth()">Sign In</button>
+      <div class="login-toggle">
+        <span id="auth-toggle-txt">Don't have an account?</span>
+        <span onclick="toggleAuthMode()"> <span id="auth-mode-lnk">Register</span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PENDING APPROVAL SCREEN ══ -->
+<div class="screen" id="s-pending">
+  <div class="pending-wrap">
+    <div class="pending-icon">⏳</div>
+    <div class="pending-title">Account Pending Approval</div>
+    <div class="pending-sub">Your account has been created. Please wait for the admin to approve your account before you can access the app.</div>
+    <button class="btn-outline" onclick="doLogout()">Sign Out</button>
+  </div>
+</div>
+
+<!-- ══ MAIN APP ══ -->
+<div id="main-app">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <img class="topbar-logo" src="data:image/png;base64,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" alt="VYRA"/>
+    <div>
+      <div class="topbar-brand">VYRA</div>
+    </div>
+    <div class="topbar-space"></div>
+    <div class="topbar-user">
+      <span id="tb-name">—</span>
+      <small id="tb-role">—</small>
+    </div>
+    <button class="btn-icon" onclick="doLogout()" title="Sign out">↩</button>
+  </div>
+
+  <div class="app-body">
+
+    <!-- ─ HOME ─ -->
+    <div class="app-screen active" id="s-home">
+      <div class="home-header">
+        <div class="home-welcome" id="home-welcome">Good morning</div>
+        <div class="home-sub">Here's your overview for today</div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-num" id="st-total">—</div><div class="stat-lbl">Total Surveys</div></div>
+        <div class="stat-card"><div class="stat-num" id="st-today">—</div><div class="stat-lbl">Today</div></div>
+        <div class="stat-card"><div class="stat-num" id="st-pending">—</div><div class="stat-lbl">Pending</div></div>
+        <div class="stat-card"><div class="stat-num" id="st-week">—</div><div class="stat-lbl">This Week</div></div>
+      </div>
+      <div class="recent-section">
+        <div class="section-title">Recent Surveys</div>
+        <div id="recent-list"><div class="loading-center"><div class="spin"></div></div></div>
+      </div>
+    </div>
+
+    <!-- ─ NEW SURVEY ─ -->
+    <div class="app-screen" id="s-survey">
+      <div class="prog-track"><div class="prog-fill" id="sv-prog" style="width:0%"></div></div>
+      <div id="sv-wrap">
+        <!-- Steps injected by JS -->
+      </div>
+      <!-- Summary -->
+      <div id="sv-summary" style="display:none;padding:16px;">
+        <div class="sum-banner">
+          <div class="sum-check" id="sv-sum-icon">✓</div>
+          <h2 id="sv-sum-title" style="color:var(--teal2);font-size:18px;margin-bottom:6px;">Survey Submitted</h2>
+          <p id="sv-sum-sub" style="color:var(--muted);font-size:13px;">Saved to database successfully.</p>
+        </div>
+        <div class="sum-actions">
+          <button class="btn-act btn-quot" onclick="svOpenQuot()">📄 Quotation</button>
+          <button class="btn-act btn-wa" onclick="svShareWA()">💬 WhatsApp</button>
+        </div>
+        <button class="btn-act btn-print" onclick="svPrint()" style="width:calc(100% - 0px);margin-top:10px;background:rgba(95,174,182,.15);border:1px solid var(--border);color:var(--teal2);">🖨 Print Report</button>
+        <button class="btn-new" onclick="svNew()">＋ New Survey</button>
+      </div>
+    </div>
+
+    <!-- ─ SURVEYS LIST ─ -->
+    <div class="app-screen" id="s-surveys">
+      <div class="surveys-toolbar">
+        <input class="search-box" type="text" id="sv-search" placeholder="🔍 Search…" oninput="filterSurveys()"/>
+        <select class="filter-sel" id="sv-filter-sys" onchange="filterSurveys()">
+          <option value="">All Systems</option>
+          <option value="CCTV">CCTV</option>
+          <option value="Network">Network</option>
+          <option value="Smart">Smart</option>
+          <option value="Sound">Sound</option>
+        </select>
+        <select class="filter-sel" id="sv-filter-sta" onchange="filterSurveys()">
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="quoted">Quoted</option>
+          <option value="closed">Closed</option>
+        </select>
+      </div>
+      <div class="surveys-list" id="sv-list">
+        <div class="loading-center"><div class="spin"></div></div>
+      </div>
+    </div>
+
+    <!-- ─ ADMIN ─ -->
+    <div class="app-screen" id="s-admin">
+      <div class="admin-tabs">
+        <div class="admin-tab active" onclick="adminTab('users',this)">👥 Users</div>
+        <div class="admin-tab" onclick="adminTab('audit',this)">📋 Audit Log</div>
+      </div>
+      <!-- Users panel -->
+      <div class="admin-panel active" id="ap-users">
+        <div class="section-title" style="margin-top:14px;">Add New User</div>
+        <div class="add-user-form">
+          <div class="fld"><label>Full Name</label><input class="finput" id="new-user-name" placeholder="Technician name"/></div>
+          <div class="fld"><label>Email</label><input class="finput" id="new-user-email" type="email" placeholder="email@example.com"/></div>
+          <div class="fld"><label>Temporary Password</label><input class="finput" id="new-user-pass" type="password" placeholder="Min 6 characters"/></div>
+          <div class="fld"><label>Role</label>
+            <select class="finput" id="new-user-role" style="cursor:pointer;">
+              <option value="technician">Technician — can submit surveys, see own data</option>
+              <option value="manager">Manager — can view all surveys, change status, create quotations</option>
+            </select>
+          </div>
+          <button class="btn-primary" onclick="createUser()" style="margin-top:4px;">Create Account</button>
+        </div>
+        <div class="section-title">All Users</div>
+        <div id="users-list"><div class="loading-center"><div class="spin"></div></div></div>
+      </div>
+      <!-- Audit panel -->
+      <div class="admin-panel" id="ap-audit">
+        <div id="audit-list" style="padding-top:14px;"><div class="loading-center"><div class="spin"></div></div></div>
+      </div>
+    </div>
+
+  </div><!-- /app-body -->
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="nav-home" onclick="navTo('home')">
+      <span class="ni">🏠</span><span class="nl">Home</span>
+    </button>
+    <button class="nav-item" id="nav-survey" onclick="navTo('survey')">
+      <span class="ni">📋</span><span class="nl">Survey</span>
+    </button>
+    <button class="nav-item" id="nav-surveys" onclick="navTo('surveys')">
+      <span class="ni">📊</span><span class="nl">Dashboard</span>
+    </button>
+    <button class="nav-item" id="nav-admin" onclick="navTo('admin')" style="display:none">
+      <span class="ni">⚙️</span><span class="nl">Admin</span>
+    </button>
+  </nav>
+
+</div><!-- /main-app -->
+
+<!-- Survey Detail Modal -->
+<div class="modal-bg" id="sv-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="sv-modal-title">Survey Details</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="sv-modal-body"></div>
+    <div class="modal-footer">
+      <button class="modal-btn mb-quot" onclick="modalQuot()">📄 Quotation</button>
+      <button class="modal-btn mb-wa" onclick="modalWA()">💬 WhatsApp</button>
+      <button class="modal-btn mb-print" onclick="modalPrint()">🖨 Print</button>
+    </div>
+    <div class="status-pick" id="status-pick-wrap">
+      <select class="status-sel" id="modal-status" onchange="saveModalStatus()">
+        <option value="pending">🟡 Pending</option>
+        <option value="quoted">🔵 Quoted</option>
+        <option value="closed">🟢 Closed</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+
+
+// ══════════════════════════════════════════════
+// FIREBASE INIT
+// ══════════════════════════════════════════════
+const fbConfig = {
+  apiKey: "AIzaSyAYTFQlb-NguOeAGDGM_C6hQfiyIrzUzDw",
+  authDomain: "vyra-systems.firebaseapp.com",
+  projectId: "vyra-systems",
+  storageBucket: "vyra-systems.firebasestorage.app",
+  messagingSenderId: "1036287475753",
+  appId: "1:1036287475753:web:bf5486de2084a6b3be1c38"
+}; firebase.initializeApp(fbConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const ADMIN_EMAIL = 'asserhegazy@vyra-systems.com';
+
+// ══════════════════════════════════════════════
+// GLOBALS
+// ══════════════════════════════════════════════
+let currentUser = null;
+let currentUserDoc = null;
+let allSurveys = [];
+let currentModalSurvey = null;
+let svStep = 1;
+let svTotalSteps = 8;
+let svPhotos = [];
+let svLastData = null;
+let authMode = 'login'; // 'login' | 'register'
+
+// ══════════════════════════════════════════════
+// TRANSLATIONS
+// ══════════════════════════════════════════════
+const T = {
+  s1title:'Client & Property', s2title:'CCTV Survey', s3title:'Network & Wi-Fi',
+  s4title:'Smart System',      s5title:'Sound System', s6title:'Infrastructure',
+  s7title:'Field Notes',       s8title:'Next Action',
+  clientName:'Client Full Name', techName:'Technician Name',
+  phone:'Phone Number', location:'Location / Area', propType:'Property Type',
+  floors:'Floors', area:'Area (m²)', systemsReq:'Systems Required',
+  covAreas:'Coverage Areas', lighting:'Lighting Conditions',
+  nightMon:'Night monitoring?', cableRoute:'Cable routing?', cctvNotes:'CCTV Notes',
+  existingRouter:'Existing router?', mainIssues:'Main Issues',
+  highUsage:'High-usage areas', cat6:'Cat6 cabling?', poe:'PoE switch?',
+  smartSubs:'Required Sub-systems', ctrlMethod:'Control Method',
+  spaceType:'Space Type', audioUse:'Audio Use', multiZones:'Multiple zones?', soundNotes:'Sound Notes',
+  powerAvail:'Power Availability', cablePaths:'Cable Routing Paths', rackNeeded:'Network rack needed?',
+  keyObs:'Key Observations', risks:'Risks & Challenges', sugDesign:'Suggested Design',
+  nextAction:'Action After This Survey',
+  yes:'Yes', no:'No'
+};
+
+// ══════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════
+function toggleAuthMode(){
+  authMode = authMode==='login' ? 'register' : 'login';
+  const isReg = authMode==='register';
+  document.getElementById('auth-title').textContent = isReg ? 'Create Account' : 'Sign In';
+  document.getElementById('auth-btn').textContent   = isReg ? 'Register' : 'Sign In';
+  document.getElementById('fld-name').style.display = isReg ? 'block' : 'none';
+  document.getElementById('auth-toggle-txt').textContent = isReg ? 'Already have an account?' : "Don't have an account?";
+  document.getElementById('auth-mode-lnk').textContent   = isReg ? 'Sign In' : 'Register';
+  document.getElementById('auth-err').style.display = 'none';
+}
+
+async function doAuth(){
+  const email = document.getElementById('auth-email').value.trim();
+  const pass  = document.getElementById('auth-pass').value;
+  const errEl = document.getElementById('auth-err');
+  errEl.style.display='none';
+  const btn = document.getElementById('auth-btn');
+  if(!email){errEl.textContent='Please enter your email.';errEl.style.display='block';return;}
+  if(!pass){errEl.textContent='Please enter your password.';errEl.style.display='block';return;}
+  btn.disabled=true; btn.textContent='Please wait...';
+  try{
+    if(authMode==='register'){
+      const name = document.getElementById('reg-name').value.trim();
+      if(!name){errEl.textContent='Please enter your full name.';errEl.style.display='block';btn.disabled=false;btn.textContent='Register';return;}
+      console.log('Registering:', email);
+      const cred = await auth.createUserWithEmailAndPassword(email,pass);
+      console.log('Created UID:', cred.user.uid);
+      const role = email===ADMIN_EMAIL ? 'admin' : 'pending';
+      await db.collection('users').doc(cred.user.uid).set({name,email,role,createdAt:firebase.firestore.FieldValue.serverTimestamp(),active:true});
+      console.log('Doc written, role:', role);
+    } else {
+      console.log('Signing in:', email);
+      await auth.signInWithEmailAndPassword(email,pass);
+      console.log('Sign in OK');
+    }
+  }catch(e){
+    console.error('Auth error full:', e.code, e.message);
+    errEl.textContent = e.message||'Authentication failed.';
+    errEl.style.display='block';
+    btn.disabled=false;
+    btn.textContent = authMode==='register' ? 'Register' : 'Sign In';
+  }
+}
+
+async function doLogout(){
+  await logAudit('user_logout',{}, null);
+  await auth.signOut();
+}
+
+auth.onAuthStateChanged(async user=>{
+  if(!user){
+    showScreen('s-login');
+    document.getElementById('main-app').classList.remove('active');
+    currentUser=null; currentUserDoc=null;
+    return;
+  }
+  currentUser = user;
+  // Load user doc
+  try{
+    const doc = await db.collection('users').doc(user.uid).get();
+    if(doc.exists){
+      currentUserDoc = doc.data();
+    } else {
+      // Auto-create for admin email
+      const role = user.email===ADMIN_EMAIL ? 'admin' : 'pending';
+      const data = {name:user.displayName||user.email.split('@')[0], email:user.email, role, createdAt:firebase.firestore.FieldValue.serverTimestamp(), active:true};
+      await db.collection('users').doc(user.uid).set(data);
+      currentUserDoc = data;
+    }
+  }catch(e){ currentUserDoc={name:user.email,role:'pending'}; }
+
+  if(currentUserDoc.role==='pending'){
+    showScreen('s-pending');
+    document.getElementById('main-app').classList.remove('active');
+    return;
+  }
+
+  // Show main app
+  document.getElementById('s-login').classList.remove('active');
+  document.getElementById('s-pending').classList.remove('active');
+  document.getElementById('main-app').classList.add('active');
+
+  // Set topbar
+  document.getElementById('tb-name').textContent = currentUserDoc.name||'—';
+  const roleLabels = {admin:'Admin',manager:'Manager',technician:'Technician',pending:'Pending'};
+  document.getElementById('tb-role').textContent = roleLabels[currentUserDoc.role] || currentUserDoc.role;
+
+  // Show admin tab
+  // ── ROLE PERMISSIONS ──
+  const role = currentUserDoc.role;
+  const PERMS = {
+    admin:      {survey:true,  surveys:true,  quotation:true, admin:true,  deletesurvey:true,  changestatus:true, viewall:true},
+    manager:    {survey:false, surveys:true,  quotation:true, admin:false, deletesurvey:false, changestatus:true, viewall:true},
+    technician: {survey:true,  surveys:true,  quotation:true, admin:false, deletesurvey:false, changestatus:false,viewall:false},
+    pending:    {survey:false, surveys:false, quotation:false,admin:false, deletesurvey:false, changestatus:false,viewall:false}
+  };
+  window.userPerms = PERMS[role] || PERMS.pending;
+
+  // Show/hide nav items based on role
+  document.getElementById('nav-survey').style.display  = userPerms.survey    ? 'flex':'none';
+  document.getElementById('nav-surveys').style.display = userPerms.surveys   ? 'flex':'none';
+  document.getElementById('nav-admin').style.display   = userPerms.admin     ? 'flex':'none';
+
+  await logAudit('user_login',{}, null);
+  initSurveyForm();
+  navTo('home');
+  loadHome();
+  loadSurveys();
+});
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
+function navTo(page){
+  // Permission check
+  const permMap = {survey:'survey',surveys:'surveys',admin:'admin'};
+  const perm = permMap[page];
+  if(perm && window.userPerms && !window.userPerms[perm]){
+    showToast('⛔ You do not have access to this page');
+    return;
+  }
+  document.querySelectorAll('.app-screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('s-'+page).classList.add('active');
+  const navEl = document.getElementById('nav-'+page);
+  if(navEl) navEl.classList.add('active');
+  if(page==='surveys') loadSurveys();
+  if(page==='admin'&&window.userPerms?.admin) loadAdmin();
+  if(page==='home') loadHome();
+  if(page==='survey') resetSurvey();
+}
+
+// ══════════════════════════════════════════════
+// AUDIT LOG
+// ══════════════════════════════════════════════
+async function logAudit(action, details, surveyId){
+  try{
+    const entry = {
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      userId:    currentUser?.uid||'system',
+      userName:  currentUserDoc?.name||currentUser?.email||'Unknown',
+      action, details: JSON.stringify(details)
+    };
+    if(surveyId) entry.surveyId = surveyId;
+    await db.collection('audit').add(entry);
+  }catch(e){}
+}
+
+// ══════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════
+let toastT;
+function showToast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2800);
+}
+
+// ══════════════════════════════════════════════
+// HOME SCREEN
+// ══════════════════════════════════════════════
+async function loadHome(){
+  const h = new Date().getHours();
+  const greet = h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  document.getElementById('home-welcome').textContent = greet+', '+(currentUserDoc?.name||'').split(' ')[0]+'!';
+
+  try{
+    let q = db.collection('surveys').orderBy('submittedAt','desc');
+    if(!window.userPerms?.viewall) q=q.where('techId','==',currentUser.uid);
+    const snap = await q.limit(50).get();
+    const docs = snap.docs.map(d=>({id:d.id,...d.data()}));
+    const today = new Date(); today.setHours(0,0,0,0);
+    const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate()-7);
+    let todayC=0,pendingC=0,weekC=0;
+    docs.forEach(d=>{
+      const ts = d.submittedAt?.toDate?.()||new Date(d.submittedAt||0);
+      if(ts>=today) todayC++;
+      if(ts>=weekAgo) weekC++;
+      if(!d.status||d.status==='pending') pendingC++;
+    });
+    document.getElementById('st-total').textContent   = docs.length;
+    document.getElementById('st-today').textContent   = todayC;
+    document.getElementById('st-pending').textContent = pendingC;
+    document.getElementById('st-week').textContent    = weekC;
+    // Recent 5
+    const recent = docs.slice(0,5);
+    document.getElementById('recent-list').innerHTML = recent.length
+      ? recent.map(d=>surveyCardHTML(d,true)).join('')
+      : '<p style="color:var(--muted);font-size:13px;text-align:center;padding:20px">No surveys yet</p>';
+  }catch(e){
+    document.getElementById('st-total').textContent='—';
+  }
+}
+
+// ══════════════════════════════════════════════
+// SURVEYS LIST
+// ══════════════════════════════════════════════
+async function loadSurveys(){
+  document.getElementById('sv-list').innerHTML='<div class="loading-center"><div class="spin"></div></div>';
+  try{
+    let q = db.collection('surveys').orderBy('submittedAt','desc');
+    if(!window.userPerms?.viewall) q=q.where('techId','==',currentUser.uid);
+    const snap = await q.limit(100).get();
+    allSurveys = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderSurveys(allSurveys);
+  }catch(e){
+    document.getElementById('sv-list').innerHTML='<p style="color:#f87171;padding:20px;font-size:13px;">Error loading surveys. Check Firestore rules.</p>';
+  }
+}
+
+function renderSurveys(list){
+  document.getElementById('sv-list').innerHTML = list.length
+    ? list.map(d=>surveyCardHTML(d,false)).join('')
+    : '<p style="color:var(--muted);font-size:13px;text-align:center;padding:40px">No surveys found</p>';
+}
+
+function surveyCardHTML(d,compact){
+  const sys=(d.client?.systems||'').split(', ').filter(Boolean);
+  const tags=sys.map(s=>{
+    const cls=s==='CCTV'?'cctv':s==='Network'?'net':s==='Smart'?'smart':'sound';
+    return `<span class="tag tag-${cls}">${s}</span>`;
+  }).join('');
+  const ts=d.submittedAt?.toDate?.()||new Date(d.submittedAt||0);
+  const dateStr=ts.toLocaleDateString('en-GB')+' '+ts.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  const stCls=d.status==='quoted'?'st-quoted':d.status==='closed'?'st-closed':'st-pending';
+  const stTxt=d.status==='quoted'?'🔵 Quoted':d.status==='closed'?'🟢 Closed':'🟡 Pending';
+  return `<div class="survey-item" onclick="openSurvey('${d.id}')">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div>
+        <div class="si-name">${d.client?.name||'—'}</div>
+        <div class="si-meta">👷 ${d.client?.tech||d.techName||'—'} &nbsp;·&nbsp; 📍 ${d.client?.location||'—'}</div>
+        ${compact?'':'<div class="si-meta">'+dateStr+'</div>'}
+      </div>
+      <span class="si-status ${stCls}">${stTxt}</span>
+    </div>
+    <div class="si-tags">${tags}</div>
+  </div>`;
+}
+
+function filterSurveys(){
+  const q   = document.getElementById('sv-search').value.toLowerCase();
+  const sys = document.getElementById('sv-filter-sys').value;
+  const sta = document.getElementById('sv-filter-sta').value;
+  const filtered = allSurveys.filter(d=>{
+    const txt=[d.client?.name,d.client?.location,d.client?.tech,d.techName].join(' ').toLowerCase();
+    const sysMatch = !sys||(d.client?.systems||'').includes(sys);
+    const staMatch = !sta||(d.status||'pending')===sta;
+    return txt.includes(q)&&sysMatch&&staMatch;
+  });
+  renderSurveys(filtered);
+}
+
+// ── Survey Detail Modal ──
+function openSurvey(id){
+  const d=allSurveys.find(x=>x.id===id);
+  if(!d) return;
+  currentModalSurvey=d;
+  document.getElementById('sv-modal-title').textContent=d.client?.name||'Survey Details';
+  document.getElementById('modal-status').value=d.status||'pending';
+  const ts=d.submittedAt?.toDate?.()||new Date(d.submittedAt||0);
+  const rows=(sec,rows)=>`<div class="modal-sec"><div class="modal-sec-title">${sec}</div>${rows.filter(r=>r[1]).map(r=>`<div class="modal-row"><span class="modal-key">${r[0]}</span><span class="modal-val">${r[1]}</span></div>`).join('')}</div>`;
+  const c=d.client||{};
+  document.getElementById('sv-modal-body').innerHTML=[
+    rows('Client & Property',[['Client',c.name],['Technician',c.tech||d.techName],['Phone',c.phone],['Location',c.location],['Property',c.propType],['Floors',c.floors],['Area',c.area],['Systems',c.systems],['Submitted',ts.toLocaleString('en-GB')]]),
+    d.cctv?.areas?rows('CCTV',[['Areas',d.cctv.areas],['Lighting',d.cctv.light],['Night',d.cctv.night],['Cable',d.cctv.cable],['Notes',d.cctv.notes]]):'',
+    d.network?.router?rows('Network',[['Router',d.network.router],['Issues',d.network.issues],['High Usage',d.network.highUsage],['Cat6',d.network.cat6],['PoE',d.network.poe]]):'',
+    d.smart?.systems?rows('Smart',[['Systems',d.smart.systems],['Control',d.smart.control]]):'',
+    d.sound?.space?rows('Sound',[['Space',d.sound.space],['Use',d.sound.use],['Zones',d.sound.zones],['Notes',d.sound.notes]]):'',
+    rows('Infrastructure',[['Power',d.infra?.power],['Paths',d.infra?.cable],['Rack',d.infra?.rack]]),
+    rows('Field Notes',[['Observations',d.tech?.observations],['Risks',d.tech?.risks],['Design',d.tech?.design]]),
+    rows('Next Action',[['Action',d.next?.action]])
+  ].join('');
+  // Show/hide actions based on permissions
+  const canStatus = window.userPerms?.changestatus ||
+    (window.userPerms?.viewall===false && d.techId===currentUser?.uid);
+  document.getElementById('status-pick-wrap').style.display = canStatus ? 'block':'none';
+  document.getElementById('sv-modal').classList.add('open');
+}
+
+function closeModal(){ document.getElementById('sv-modal').classList.remove('open'); }
+
+async function saveModalStatus(){
+  if(!currentModalSurvey) return;
+  const s=document.getElementById('modal-status').value;
+  try{
+    await db.collection('surveys').doc(currentModalSurvey.id).update({status:s});
+    currentModalSurvey.status=s;
+    const idx=allSurveys.findIndex(x=>x.id===currentModalSurvey.id);
+    if(idx>-1) allSurveys[idx].status=s;
+    await logAudit('status_changed',{surveyId:currentModalSurvey.id,status:s,client:currentModalSurvey.client?.name},currentModalSurvey.id);
+    showToast('✓ Status updated to '+s);
+    renderSurveys(allSurveys);
+    closeModal();
+  }catch(e){ showToast('Error: '+e.message); }
+}
+
+function modalQuot(){
+  if(!currentModalSurvey) return;
+  const c=currentModalSurvey.client||{};
+  const p=new URLSearchParams({name:c.name||'',phone:c.phone||'',address:c.location||'',tech:c.tech||currentModalSurvey.techName||'',systems:c.systems||''});
+  window.open('quotation.html?'+p,'_blank');
+}
+function modalWA(){
+  if(!currentModalSurvey) return;
+  const d=currentModalSurvey,c=d.client||{};
+  const msg=encodeURIComponent(['🔵 *VYRA Systems — Site Survey*','','👤 *Client:* '+c.name,'👷 *Tech:* '+(c.tech||d.techName),'📞 *Phone:* '+c.phone,'📍 *Location:* '+c.location,'⚙️ *Systems:* '+c.systems,'📋 *Action:* '+d.next?.action,'🏷 *Status:* '+(d.status||'pending')].join('\n'));
+  window.open('https://wa.me/?text='+msg,'_blank');
+}
+function modalPrint(){
+  if(!currentModalSurvey) return;
+  const d=currentModalSurvey;
+  const printData={...d, lang:'en', translations:T, submittedAt:d.submittedAt?.toDate?.()?.toISOString()||new Date().toISOString()};
+  try{localStorage.setItem('vyra_print_data',JSON.stringify(printData));}catch(e){}
+  window.open('survey-print.html','_blank');
+}
+
+// ══════════════════════════════════════════════
+// SURVEY FORM
+// ══════════════════════════════════════════════
+function initSurveyForm(){
+  const techName = currentUserDoc?.name||'';
+  document.getElementById('sv-wrap').innerHTML = `
+  <!-- Step 1 -->
+  <div class="sv-step active" data-step="1">
+    <div class="step-hdr"><div class="step-num">Step 01</div><div class="step-name">Client &amp; Property</div></div>
+    <div class="step-body">
+      <div class="qblock"><div class="qlabel">Client Full Name *</div><input class="finput" id="f-name" placeholder="Full name" autocomplete="off"/></div>
+      <div class="qblock"><div class="qlabel">Technician Name</div><input class="finput" id="f-tech" value="${techName}" readonly style="opacity:.7"/></div>
+      <div class="qblock"><div class="qlabel">Phone Number *</div><input class="finput" id="f-phone" type="tel" placeholder="+20…"/></div>
+      <div class="qblock"><div class="qlabel">Location / Area *</div><input class="finput" id="f-loc" placeholder="City, district, street" autocomplete="off"/></div>
+      <div class="qblock"><div class="qlabel">Property Type</div>
+        <div class="tiles">
+          <label class="tile"><input type="radio" name="propType" value="Apartment"/><span class="tile-body"><span class="tile-mark"></span> Apartment</span></label>
+          <label class="tile"><input type="radio" name="propType" value="Villa"/><span class="tile-body"><span class="tile-mark"></span> Villa</span></label>
+          <label class="tile"><input type="radio" name="propType" value="Office"/><span class="tile-body"><span class="tile-mark"></span> Office</span></label>
+          <label class="tile"><input type="radio" name="propType" value="Shop"/><span class="tile-body"><span class="tile-mark"></span> Shop</span></label>
+          <label class="tile"><input type="radio" name="propType" value="Warehouse"/><span class="tile-body"><span class="tile-mark"></span> Warehouse</span></label>
+          <label class="tile"><input type="radio" name="propType" value="Other"/><span class="tile-body"><span class="tile-mark"></span> Other</span></label>
+        </div>
+      </div>
+      <div class="irow">
+        <div class="qblock"><div class="qlabel">Floors</div><input class="finput" id="f-floors" type="number" placeholder="e.g. 3" inputmode="numeric"/></div>
+        <div class="qblock"><div class="qlabel">Area (m²)</div><input class="finput" id="f-area" type="number" placeholder="e.g. 200" inputmode="numeric"/></div>
+      </div>
+      <div class="qblock"><div class="qlabel">Systems Required *</div>
+        <div class="tiles">
+          <label class="tile"><input type="checkbox" name="systems" value="CCTV"/><span class="tile-body"><span class="tile-sq"></span> 📷 CCTV</span></label>
+          <label class="tile"><input type="checkbox" name="systems" value="Network"/><span class="tile-body"><span class="tile-sq"></span> 🌐 Network</span></label>
+          <label class="tile"><input type="checkbox" name="systems" value="Smart"/><span class="tile-body"><span class="tile-sq"></span> 🏠 Smart</span></label>
+          <label class="tile"><input type="checkbox" name="systems" value="Sound"/><span class="tile-body"><span class="tile-sq"></span> 🔊 Sound</span></label>
+        </div>
+      </div>
+    </div>
+    <div class="step-nav"><button class="btn-next" onclick="svNext()">Continue →</button></div>
+  </div>
+  <!-- Step 2 CCTV -->
+  <div class="sv-step" data-step="2">
+    <div class="step-hdr"><div class="step-num">Step 02</div><div class="step-name">CCTV Survey</div></div>
+    <div class="step-body">
+      <div class="qblock"><div class="qlabel">Coverage Areas</div>
+        <div class="tiles">
+          <label class="tile"><input type="checkbox" name="cctvAreas" value="Main Entrance"/><span class="tile-body"><span class="tile-sq"></span> Main Entrance</span></label>
+          <label class="tile"><input type="checkbox" name="cctvAreas" value="Back Entrance"/><span class="tile-body"><span class="tile-sq"></span> Back Entrance</span></label>
+          <label class="tile"><input type="checkbox" name="cctvAreas" value="Garage"/><span class="tile-body"><span class="tile-sq"></span> Garage</span></label>
+          <label class="tile"><input type="checkbox" name="cctvAreas" value="Garden"/><span class="tile-body"><span class="tile-sq"></span> Garden</span></label>
+          <label class="tile"><input type="checkbox" name="cctvAreas" value="Corridors"/><span class="tile-body"><span class="tile-sq"></span> Corridors</span></label>
+          <label class="tile"><input type="checkbox" name="cctvAreas" value="Perimeter"/><span class="tile-body"><span class="tile-sq"></span> Perimeter</span></label>
+          <label class="tile"><input type="checkbox" name="cctvAreas" value="Office Areas"/><span class="tile-body"><span class="tile-sq"></span> Office Areas</span></label>
+          <label class="tile"><input type="checkbox" name="cctvAreas" value="Warehouse"/><span class="tile-body"><span class="tile-sq"></span> Warehouse</span></label>
+        </div>
+      </div>
+      <div class="qblock"><div class="qlabel">Lighting Conditions</div>
+        <div class="tiles">
+          <label class="tile"><input type="radio" name="cctvLight" value="Good"/><span class="tile-body"><span class="tile-mark"></span> Good</span></label>
+          <label class="tile"><input type="radio" name="cctvLight" value="Low Light"/><span class="tile-body"><span class="tile-mark"></span> Low Light</span></label>
+          <label class="tile"><input type="radio" name="cctvLight" value="Direct Sunlight"/><span class="tile-body"><span class="tile-mark"></span> Direct Sunlight</span></label>
+        </div>
+      </div>
+      <div class="irow">
+        <div class="qblock"><div class="qlabel">Night monitoring?</div><div class="yesno"><label class="tile"><input type="radio" name="cctvNight" value="Yes"/><span class="tile-body"><span class="tile-mark"></span> Yes</span></label><label class="tile"><input type="radio" name="cctvNight" value="No"/><span class="tile-body"><span class="tile-mark"></span> No</span></label></div></div>
+        <div class="qblock"><div class="qlabel">Cable routing?</div><div class="yesno"><label class="tile"><input type="radio" name="cctvCable" value="Yes"/><span class="tile-body"><span class="tile-mark"></span> Yes</span></label><label class="tile"><input type="radio" name="cctvCable" value="No"/><span class="tile-body"><span class="tile-mark"></span> No</span></label></div></div>
+      </div>
+      <div class="qblock"><div class="qlabel">CCTV Notes</div><textarea class="ftextarea" id="f-cctvNotes" placeholder="Blind spots, special conditions…"></textarea></div>
+    </div>
+    <div class="step-nav"><button class="btn-back" onclick="svBack()">← Back</button><button class="btn-next" onclick="svNext()">Continue →</button></div>
+  </div>
+  <!-- Step 3 Network -->
+  <div class="sv-step" data-step="3">
+    <div class="step-hdr"><div class="step-num">Step 03</div><div class="step-name">Network &amp; Wi-Fi</div></div>
+    <div class="step-body">
+      <div class="qblock"><div class="qlabel">Existing router / ISP line?</div><div class="yesno"><label class="tile"><input type="radio" name="netRouter" value="Yes"/><span class="tile-body"><span class="tile-mark"></span> Yes</span></label><label class="tile"><input type="radio" name="netRouter" value="No"/><span class="tile-body"><span class="tile-mark"></span> No</span></label></div></div>
+      <div class="qblock"><div class="qlabel">Main Issues</div>
+        <div class="tiles">
+          <label class="tile"><input type="checkbox" name="netIssues" value="Weak Signal"/><span class="tile-body"><span class="tile-sq"></span> Weak Signal</span></label>
+          <label class="tile"><input type="checkbox" name="netIssues" value="Disconnections"/><span class="tile-body"><span class="tile-sq"></span> Disconnections</span></label>
+          <label class="tile"><input type="checkbox" name="netIssues" value="Slow Speed"/><span class="tile-body"><span class="tile-sq"></span> Slow Speed</span></label>
+          <label class="tile"><input type="checkbox" name="netIssues" value="Dead Zones"/><span class="tile-body"><span class="tile-sq"></span> Dead Zones</span></label>
+        </div>
+      </div>
+      <div class="qblock"><div class="qlabel">High-usage areas</div><input class="finput" id="f-netUsage" placeholder="e.g. Conference room, server room…"/></div>
+      <div class="irow">
+        <div class="qblock"><div class="qlabel">Cat6 cabling?</div><div class="yesno"><label class="tile"><input type="radio" name="netCat6" value="Yes"/><span class="tile-body"><span class="tile-mark"></span> Yes</span></label><label class="tile"><input type="radio" name="netCat6" value="No"/><span class="tile-body"><span class="tile-mark"></span> No</span></label></div></div>
+        <div class="qblock"><div class="qlabel">PoE switch?</div><div class="yesno"><label class="tile"><input type="radio" name="netPoE" value="Yes"/><span class="tile-body"><span class="tile-mark"></span> Yes</span></label><label class="tile"><input type="radio" name="netPoE" value="No"/><span class="tile-body"><span class="tile-mark"></span> No</span></label></div></div>
+      </div>
+    </div>
+    <div class="step-nav"><button class="btn-back" onclick="svBack()">← Back</button><button class="btn-next" onclick="svNext()">Continue →</button></div>
+  </div>
+  <!-- Step 4 Smart -->
+  <div class="sv-step" data-step="4">
+    <div class="step-hdr"><div class="step-num">Step 04</div><div class="step-name">Smart System</div></div>
+    <div class="step-body">
+      <div class="qblock"><div class="qlabel">Required Sub-systems</div>
+        <div class="tiles">
+          <label class="tile"><input type="checkbox" name="smartSub" value="Lighting"/><span class="tile-body"><span class="tile-sq"></span> 💡 Lighting</span></label>
+          <label class="tile"><input type="checkbox" name="smartSub" value="AC Control"/><span class="tile-body"><span class="tile-sq"></span> ❄️ AC Control</span></label>
+          <label class="tile"><input type="checkbox" name="smartSub" value="Cameras"/><span class="tile-body"><span class="tile-sq"></span> 📷 Cameras</span></label>
+          <label class="tile"><input type="checkbox" name="smartSub" value="Motion"/><span class="tile-body"><span class="tile-sq"></span> 🚶 Motion</span></label>
+          <label class="tile"><input type="checkbox" name="smartSub" value="Door Sensors"/><span class="tile-body"><span class="tile-sq"></span> 🚪 Door Sensors</span></label>
+          <label class="tile"><input type="checkbox" name="smartSub" value="Gas Sensor"/><span class="tile-body"><span class="tile-sq"></span> 🔥 Gas Sensor</span></label>
+          <label class="tile"><input type="checkbox" name="smartSub" value="Water Leak"/><span class="tile-body"><span class="tile-sq"></span> 💧 Water Leak</span></label>
+        </div>
+      </div>
+      <div class="qblock"><div class="qlabel">Control Method</div>
+        <div class="tiles">
+          <label class="tile"><input type="radio" name="smartCtrl" value="Mobile App only"/><span class="tile-body"><span class="tile-mark"></span> Mobile App only</span></label>
+          <label class="tile"><input type="radio" name="smartCtrl" value="Wall Panel only"/><span class="tile-body"><span class="tile-mark"></span> Wall Panel only</span></label>
+          <label class="tile"><input type="radio" name="smartCtrl" value="Both — App & Panel"/><span class="tile-body"><span class="tile-mark"></span> Both</span></label>
+        </div>
+      </div>
+    </div>
+    <div class="step-nav"><button class="btn-back" onclick="svBack()">← Back</button><button class="btn-next" onclick="svNext()">Continue →</button></div>
+  </div>
+  <!-- Step 5 Sound -->
+  <div class="sv-step" data-step="5">
+    <div class="step-hdr"><div class="step-num">Step 05</div><div class="step-name">Sound System</div></div>
+    <div class="step-body">
+      <div class="qblock"><div class="qlabel">Space Type</div>
+        <div class="tiles">
+          <label class="tile"><input type="radio" name="soundSpace" value="Indoor"/><span class="tile-body"><span class="tile-mark"></span> Indoor</span></label>
+          <label class="tile"><input type="radio" name="soundSpace" value="Outdoor"/><span class="tile-body"><span class="tile-mark"></span> Outdoor</span></label>
+          <label class="tile"><input type="radio" name="soundSpace" value="Both"/><span class="tile-body"><span class="tile-mark"></span> Both</span></label>
+          <label class="tile"><input type="radio" name="soundSpace" value="Office"/><span class="tile-body"><span class="tile-mark"></span> Office</span></label>
+        </div>
+      </div>
+      <div class="qblock"><div class="qlabel">Audio Use</div>
+        <div class="tiles">
+          <label class="tile"><input type="checkbox" name="soundUse" value="Background Music"/><span class="tile-body"><span class="tile-sq"></span> 🎵 Background Music</span></label>
+          <label class="tile"><input type="checkbox" name="soundUse" value="Announcements"/><span class="tile-body"><span class="tile-sq"></span> 📢 Announcements</span></label>
+          <label class="tile"><input type="checkbox" name="soundUse" value="General Sound"/><span class="tile-body"><span class="tile-sq"></span> 🔈 General Sound</span></label>
+        </div>
+      </div>
+      <div class="qblock"><div class="qlabel">Multiple zones?</div><div class="yesno"><label class="tile"><input type="radio" name="soundZones" value="Yes"/><span class="tile-body"><span class="tile-mark"></span> Yes</span></label><label class="tile"><input type="radio" name="soundZones" value="No"/><span class="tile-body"><span class="tile-mark"></span> No</span></label></div></div>
+      <div class="qblock"><div class="qlabel">Sound Notes</div><textarea class="ftextarea" id="f-soundNotes" placeholder="Room size, ceiling type…"></textarea></div>
+    </div>
+    <div class="step-nav"><button class="btn-back" onclick="svBack()">← Back</button><button class="btn-next" onclick="svNext()">Continue →</button></div>
+  </div>
+  <!-- Step 6 Infrastructure -->
+  <div class="sv-step" data-step="6">
+    <div class="step-hdr"><div class="step-num">Step 06</div><div class="step-name">Infrastructure</div></div>
+    <div class="step-body">
+      <div class="qblock"><div class="qlabel">Power Availability</div>
+        <div class="tiles">
+          <label class="tile"><input type="radio" name="infraPower" value="Good — sufficient power points"/><span class="tile-body"><span class="tile-mark"></span> Good — sufficient</span></label>
+          <label class="tile"><input type="radio" name="infraPower" value="Limited — additional wiring needed"/><span class="tile-body"><span class="tile-mark"></span> Limited</span></label>
+        </div>
+      </div>
+      <div class="qblock"><div class="qlabel">Cable Routing Paths</div>
+        <div class="tiles">
+          <label class="tile"><input type="checkbox" name="infraCable" value="Ceiling"/><span class="tile-body"><span class="tile-sq"></span> Ceiling</span></label>
+          <label class="tile"><input type="checkbox" name="infraCable" value="Walls"/><span class="tile-body"><span class="tile-sq"></span> Walls</span></label>
+          <label class="tile"><input type="checkbox" name="infraCable" value="External"/><span class="tile-body"><span class="tile-sq"></span> External</span></label>
+        </div>
+      </div>
+      <div class="qblock"><div class="qlabel">Network rack needed?</div><div class="yesno"><label class="tile"><input type="radio" name="infraRack" value="Yes"/><span class="tile-body"><span class="tile-mark"></span> Yes</span></label><label class="tile"><input type="radio" name="infraRack" value="No"/><span class="tile-body"><span class="tile-mark"></span> No</span></label></div></div>
+    </div>
+    <div class="step-nav"><button class="btn-back" onclick="svBack()">← Back</button><button class="btn-next" onclick="svNext()">Continue →</button></div>
+  </div>
+  <!-- Step 7 Field Notes -->
+  <div class="sv-step" data-step="7">
+    <div class="step-hdr"><div class="step-num">Step 07</div><div class="step-name">Field Notes</div></div>
+    <div class="step-body">
+      <div class="qblock"><div class="qlabel">Key Observations</div><textarea class="ftextarea" id="f-obs" placeholder="Site conditions, access points…"></textarea></div>
+      <div class="qblock"><div class="qlabel">Risks &amp; Challenges</div><textarea class="ftextarea" id="f-risks" placeholder="Installation risks, limitations…"></textarea></div>
+      <div class="qblock"><div class="qlabel">Suggested Design</div><textarea class="ftextarea" id="f-design" placeholder="Recommended layout, equipment…"></textarea></div>
+    </div>
+    <div class="step-nav"><button class="btn-back" onclick="svBack()">← Back</button><button class="btn-next" onclick="svNext()">Continue →</button></div>
+  </div>
+  <!-- Step 8 Next Action -->
+  <div class="sv-step" data-step="8">
+    <div class="step-hdr"><div class="step-num">Step 08</div><div class="step-name">Next Action</div></div>
+    <div class="step-body">
+      <div class="qblock"><div class="qlabel">Action After This Survey</div>
+        <div class="tiles" style="flex-direction:column;gap:10px;">
+          <label class="tile"><input type="radio" name="nextAction" value="Send formal quotation to client"/><span class="tile-body" style="width:100%;"><span class="tile-mark"></span> 📄 Send formal quotation to client</span></label>
+          <label class="tile"><input type="radio" name="nextAction" value="Schedule a follow-up visit"/><span class="tile-body" style="width:100%;"><span class="tile-mark"></span> 📅 Schedule a follow-up visit</span></label>
+          <label class="tile"><input type="radio" name="nextAction" value="Waiting for client decision"/><span class="tile-body" style="width:100%;"><span class="tile-mark"></span> ⏳ Waiting for client decision</span></label>
+        </div>
+      </div>
+    </div>
+    <div class="step-nav"><button class="btn-back" onclick="svBack()">← Back</button><button class="btn-submit" onclick="svSubmit()">✓ Submit Survey</button></div>
+  </div>`;
+  svStep=1; svUpdateProg();
+}
+
+function svShowStep(n){
+  document.querySelectorAll('.sv-step').forEach(s=>s.classList.remove('active'));
+  const el=document.querySelector(`.sv-step[data-step="${n}"]`);
+  if(el){el.classList.add('active'); el.scrollIntoView({behavior:'smooth',block:'start'});}
+  svStep=n; svUpdateProg();
+}
+function svUpdateProg(){
+  document.getElementById('sv-prog').style.width=((svStep/svTotalSteps)*100)+'%';
+}
+
+function svNext(){
+  // basic validation on step 1
+  if(svStep===1){
+    const name=document.getElementById('f-name').value.trim();
+    const phone=document.getElementById('f-phone').value.trim();
+    const loc=document.getElementById('f-loc').value.trim();
+    const sys=[...document.querySelectorAll('[name=systems]:checked')].map(e=>e.value);
+    if(!name||!phone||!loc){showToast('⚠️ Please fill Name, Phone and Location');return;}
+    if(!sys.length){showToast('⚠️ Please select at least one system');return;}
+  }
+  if(svStep<svTotalSteps) svShowStep(svStep+1);
+}
+function svBack(){ if(svStep>1) svShowStep(svStep-1); }
+
+function svCollect(){
+  const val=id=>document.getElementById(id)?.value?.trim()||'';
+  const radio=n=>[...document.querySelectorAll(`[name=${n}]:checked`)].map(e=>e.value)[0]||'';
+  const checks=n=>[...document.querySelectorAll(`[name=${n}]:checked`)].map(e=>e.value).join(', ');
+  return{
+    submittedAt: new Date().toISOString(),
+    techId: currentUser?.uid||'',
+    techName: currentUserDoc?.name||'',
+    techEmail: currentUser?.email||'',
+    status: 'pending',
+    client:{name:val('f-name'),tech:val('f-tech'),phone:val('f-phone'),location:val('f-loc'),propType:radio('propType'),floors:val('f-floors'),area:val('f-area'),systems:checks('systems')},
+    cctv:{areas:checks('cctvAreas'),light:radio('cctvLight'),night:radio('cctvNight'),cable:radio('cctvCable'),notes:val('f-cctvNotes')},
+    network:{router:radio('netRouter'),issues:checks('netIssues'),highUsage:val('f-netUsage'),cat6:radio('netCat6'),poe:radio('netPoE')},
+    smart:{systems:checks('smartSub'),control:radio('smartCtrl')},
+    sound:{space:radio('soundSpace'),use:checks('soundUse'),zones:radio('soundZones'),notes:val('f-soundNotes')},
+    infra:{power:radio('infraPower'),cable:checks('infraCable'),rack:radio('infraRack')},
+    tech:{observations:val('f-obs'),risks:val('f-risks'),design:val('f-design')},
+    next:{action:radio('nextAction')}
+  };
+}
+
+async function svSubmit(){
+  const btn=document.querySelector('.btn-submit');
+  btn.disabled=true; btn.textContent='Saving…';
+  const data=svCollect();
+  try{
+    const ref=await db.collection('surveys').add({
+      ...data,
+      submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    svLastData={...data,id:ref.id};
+    await logAudit('survey_submitted',{client:data.client.name,systems:data.client.systems},ref.id);
+    showToast('✓ Survey saved to database');
+    // Show summary
+    document.getElementById('sv-wrap').style.display='none';
+    document.getElementById('sv-summary').style.display='block';
+    document.getElementById('sv-prog').style.width='100%';
+    document.getElementById('sv-sum-title').textContent='Survey Submitted ✓';
+    document.getElementById('sv-sum-sub').textContent='Saved to Firebase for '+data.client.name;
+    allSurveys.unshift(svLastData);
+  }catch(e){
+    showToast('Error: '+e.message);
+    btn.disabled=false; btn.textContent='✓ Submit Survey';
+  }
+}
+
+function resetSurvey(){
+  document.getElementById('sv-wrap').style.display='block';
+  document.getElementById('sv-summary').style.display='none';
+  svStep=1; svShowStep(1);
+}
+function svNew(){ resetSurvey(); navTo('survey'); }
+function svOpenQuot(){
+  if(!svLastData) return;
+  const c=svLastData.client;
+  const p=new URLSearchParams({name:c.name||'',phone:c.phone||'',address:c.location||'',tech:c.tech||'',systems:c.systems||''});
+  window.open('quotation.html?'+p,'_blank');
+}
+function svShareWA(){
+  if(!svLastData) return;
+  const d=svLastData,c=d.client;
+  const msg=encodeURIComponent(['🔵 *VYRA Systems — Site Survey*','','👤 *Client:* '+c.name,'📞 *Phone:* '+c.phone,'📍 *Location:* '+c.location,'⚙️ *Systems:* '+c.systems,'📋 *Next Action:* '+d.next?.action].join('\n'));
+  window.open('https://wa.me/?text='+msg,'_blank');
+}
+function svPrint(){
+  if(!svLastData) return;
+  const printData={...svLastData, lang:'en', translations:T};
+  try{localStorage.setItem('vyra_print_data',JSON.stringify(printData));}catch(e){}
+  window.open('survey-print.html','_blank');
+}
+
+// ══════════════════════════════════════════════
+// ADMIN
+// ══════════════════════════════════════════════
+async function loadAdmin(){
+  // Load users
+  try{
+    const snap=await db.collection('users').get();
+    const users=snap.docs.map(d=>({id:d.id,...d.data()}));
+    document.getElementById('users-list').innerHTML=users.map(u=>{
+      const initials=(u.name||u.email||'?').charAt(0).toUpperCase();
+      const roleCls=u.role==='admin'?'role-admin':u.role==='manager'?'role-manager':u.role==='pending'?'role-pending':'role-tech';
+      const isMe = u.id === currentUser?.uid;
+      return `<div class="user-card">
+        <div class="user-avatar">${initials}</div>
+        <div class="user-info">
+          <div class="user-name">${u.name||'—'} ${isMe?'<span style="font-size:10px;color:var(--teal)">(you)</span>':''}</div>
+          <div class="user-email">${u.email}</div>
+        </div>
+        <span class="role-badge ${roleCls}">${u.role}</span>
+        ${u.role==='pending'?`<button class="btn-sm" onclick="approveUser('${u.id}','technician')">✓ Approve</button>`:''}
+        ${u.role==='pending'?`<button class="btn-sm" style="margin-left:4px;" onclick="approveUser('${u.id}','manager')">★ As Manager</button>`:''}
+        ${(u.role==='technician'||u.role==='manager')&&!isMe?`<select class="btn-sm" onchange="changeRole('${u.id}',this.value)" style="cursor:pointer;">
+          <option value="">Change role…</option>
+          <option value="technician">Technician</option>
+          <option value="manager">Manager</option>
+          <option value="pending">Remove access</option>
+        </select>`:''}
+      </div>`;
+    }).join('');
+  }catch(e){ document.getElementById('users-list').innerHTML='<p style="color:#f87171;padding:20px;font-size:12px;">Error: '+e.message+'</p>'; }
+
+  // Load audit log
+  try{
+    const snap=await db.collection('audit').orderBy('timestamp','desc').limit(50).get();
+    document.getElementById('audit-list').innerHTML=snap.docs.map(d=>{
+      const data=d.data();
+      const ts=data.timestamp?.toDate?.()||new Date();
+      return `<div class="audit-item">
+        <div class="audit-action">${data.action?.replace(/_/g,' ').toUpperCase()}</div>
+        <div class="audit-user">by ${data.userName} &nbsp;·&nbsp; ${data.details||''}</div>
+        <div class="audit-time">${ts.toLocaleString('en-GB')}</div>
+      </div>`;
+    }).join('');
+  }catch(e){}
+}
+
+async function approveUser(uid, role){
+  role = role || 'technician';
+  await db.collection('users').doc(uid).update({role});
+  await logAudit('user_approved',{userId:uid, role},null);
+  showToast('✓ User approved as '+role);
+  loadAdmin();
+}
+async function changeRole(uid, newRole){
+  if(!newRole) return;
+  if(!confirm('Change this user role to '+newRole+'?')) return;
+  await db.collection('users').doc(uid).update({role:newRole});
+  await logAudit('role_changed',{userId:uid,newRole},null);
+  showToast('✓ Role changed to '+newRole);
+  loadAdmin();
+}
+async function deactivateUser(uid){
+  if(!confirm('Remove this user?')) return;
+  await db.collection('users').doc(uid).update({role:'pending'});
+  await logAudit('user_deactivated',{userId:uid},null);
+  showToast('User removed');
+  loadAdmin();
+}
+
+async function createUser(){
+  const name=document.getElementById('new-user-name').value.trim();
+  const email=document.getElementById('new-user-email').value.trim();
+  const pass=document.getElementById('new-user-pass').value;
+  if(!name||!email||!pass){showToast('⚠️ Fill all fields');return;}
+  try{
+    const cred=await auth.createUserWithEmailAndPassword(email,pass);
+    await db.collection('users').doc(cred.user.uid).set({
+      name,email,role:document.getElementById('new-user-role')?.value||'technician',
+      createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+      active:true
+    });
+    await logAudit('user_created_by_admin',{name,email},null);
+    // Sign back in as admin
+    const adminEmail=currentUser.email;
+    const adminPass=prompt('Re-enter your admin password to stay signed in:');
+    if(adminPass) await auth.signInWithEmailAndPassword(adminEmail,adminPass);
+    showToast('✓ User created: '+name);
+    document.getElementById('new-user-name').value='';
+    document.getElementById('new-user-email').value='';
+    document.getElementById('new-user-pass').value='';
+    loadAdmin();
+  }catch(e){ showToast('Error: '+e.message); }
+}
+
+function adminTab(tab,el){
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.admin-panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('ap-'+tab).classList.add('active');
+}
+</script>
+
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js')
+      .then(function(r){ console.log('SW registered'); })
+      .catch(function(e){ console.log('SW error:', e); });
+  });
+}
+</script>
+</body>
+</html>

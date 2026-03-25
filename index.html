@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#19224A"/>
+<link rel="manifest" href="manifest.json"/>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<title>VYRA Site Survey</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Montserrat',sans-serif;background:#19224A;color:#e8f4f6;display:flex;flex-direction:column;}
+input,textarea,button{font-family:'Montserrat',sans-serif;}
+:root{
+  --bg:#19224A;--surface:#1c2d5c;--card:#223B73;--border:rgba(95,174,182,0.22);
+  --accent:#5FAEB6;--accent2:#6FC7D1;--adim:rgba(95,174,182,0.14);
+  --text:#e8f4f6;--muted:#A9D1DA;--light:#c8eaee;
+  --green:#6FC7D1;--red:#e05c6e;--r:13px;
+}
+/* ═══════════ RTL — Arabic Mode ═══════════ */
+
+/* 1. Base direction + text alignment — cascades to all block children */
+[dir="rtl"] body { direction: rtl; text-align: right; }
+
+/* 2. Top bar — direction:rtl reverses flex order automatically */
+
+/* 3. Step header — icon to right, title text to right */
+[dir="rtl"] .step-hdr { flex-direction: row-reverse; }
+[dir="rtl"] .step-title-wrap { text-align: right; width: 100%; }
+[dir="rtl"] .step-num { text-transform: none; letter-spacing: 0; text-align: right; display: block; }
+[dir="rtl"] .step-name { letter-spacing: 0; text-align: right; display: block; }
+
+/* 4. Question labels — no caps, right aligned */
+[dir="rtl"] .qlabel { text-transform: none; letter-spacing: 0; font-size: 12.5px; text-align: right; }
+[dir="rtl"] .qhint { margin-left: 0; margin-right: 4px; }
+[dir="rtl"] .qreq { margin-right: 0; margin-left: 4px; }
+
+/* 5. All question block text right-aligned */
+[dir="rtl"] .qblock { text-align: right; }
+
+/* 6. Inputs */
+[dir="rtl"] .finput { text-align: right; }
+[dir="rtl"] .ftextarea { text-align: right; }
+
+/* 7. Grid rows — RTL column order */
+[dir="rtl"] .irow { direction: rtl; }
+[dir="rtl"] .yesno { direction: rtl; }
+
+/* 8. Tiles — direction:rtl body reverses flex row so checkbox is on right */
+[dir="rtl"] .tile-body { text-align: right; }
+[dir="rtl"] .tile-lbl { text-align: right; }
+[dir="rtl"] .tiles.col2 .tile-body,
+[dir="rtl"] .tiles.col3 .tile-body { text-align: center; }
+[dir="rtl"] .tiles.col2 .tile-lbl,
+[dir="rtl"] .tiles.col3 .tile-lbl { text-align: center; }
+
+/* 9. Navbar buttons */
+[dir="rtl"] .btn-back { letter-spacing: 0; }
+[dir="rtl"] .btn-next { letter-spacing: 0; }
+[dir="rtl"] .btn-submit { letter-spacing: 0; }
+
+/* 10. Update bar */
+[dir="rtl"] .update-txt { text-align: right; }
+
+/* 11. Summary — all text right */
+[dir="rtl"] .sum-sec-title { text-align: right; text-transform: none; letter-spacing: 0; }
+[dir="rtl"] .sum-key { text-align: right; text-transform: none; letter-spacing: 0; }
+[dir="rtl"] .sum-val { text-align: right; }
+[dir="rtl"] .sum-row { text-align: right; }
+[dir="rtl"] .sum-banner h2 { text-align: center; }
+[dir="rtl"] .sum-banner p { text-align: center; }
+
+/* 12. Step animation */
+[dir="rtl"] .step.active { animation: fi-rtl .25s ease; }
+@keyframes fi-rtl { from{opacity:0;transform:translateX(-14px);}to{opacity:1;transform:translateX(0);} }
+
+/* 13. Progress bar grows from right */
+[dir="rtl"] .prog-fill { border-radius: 2px 0 0 2px; margin-left: auto; }
+
+/* TOP BAR */
+.topbar{flex-shrink:0;height:56px;background:linear-gradient(90deg,#19224A,#1c2d5c);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:8px;box-shadow:0 2px 12px rgba(25,34,74,.6);}
+.brand{font-family:'Montserrat',sans-serif;font-size:15px;font-weight:800;letter-spacing:3px;text-transform:uppercase;background:linear-gradient(135deg,#6FC7D1,#A9D1DA);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.ver-badge{font-size:9px;font-weight:600;color:rgba(169,209,218,.45);letter-spacing:1px;}
+.topbar-mid{flex:1;}
+.tech-input{
+  height:30px;padding:0 10px;border-radius:8px;
+  background:rgba(34,59,115,.7);border:1.5px solid rgba(95,174,182,.3);
+  color:var(--text);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:500;
+  outline:none;width:130px;transition:border-color .2s,width .25s;
+}
+.tech-input:focus{border-color:var(--accent);width:150px;}
+.tech-input::placeholder{color:rgba(169,209,218,.5);}
+.tech-display{
+  font-size:11px;font-weight:600;color:var(--accent2);
+  background:rgba(34,59,115,.5);border:1px solid rgba(95,174,182,.2);
+  border-radius:8px;padding:4px 10px;max-width:140px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.lang-btn{height:32px;padding:0 10px;border-radius:8px;border:1.5px solid rgba(95,174,182,.35);background:rgba(34,59,115,.6);color:var(--accent2);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all .2s;display:flex;align-items:center;gap:5px;}
+.lang-btn:active{background:rgba(95,174,182,.2);}
+.step-badge{font-size:11px;font-weight:500;color:var(--muted);background:rgba(34,59,115,.8);border:1px solid var(--border);border-radius:20px;padding:4px 10px;}
+.step-badge b{color:#fff;font-weight:700;}
+
+/* PROGRESS */
+.prog-track{flex-shrink:0;height:3px;background:rgba(95,174,182,.15);}
+.prog-fill{height:100%;background:linear-gradient(90deg,#5FAEB6,#6FC7D1);border-radius:0 2px 2px 0;transition:width .45s cubic-bezier(.4,0,.2,1);}
+
+/* STEPS */
+.steps-wrap{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+.step{display:none;padding:20px 16px 28px;animation:fi .25s ease;}
+.step.active{display:block;}
+@keyframes fi{from{opacity:0;transform:translateX(14px);}to{opacity:1;transform:translateX(0);}}
+
+/* STEP HEADER */
+.step-hdr{display:flex;align-items:center;gap:13px;margin-bottom:22px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+.step-ico{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(95,174,182,.2),rgba(111,199,209,.1));border:1px solid rgba(95,174,182,.35);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.step-num{font-size:10px;font-weight:600;color:var(--accent2);letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;}
+.step-name{font-family:'Montserrat',sans-serif;font-size:17px;font-weight:700;color:#fff;letter-spacing:-.2px;}
+
+/* QUESTIONS */
+.qblock{margin-bottom:18px;}
+.qlabel{font-size:11.5px;font-weight:600;color:var(--muted);margin-bottom:9px;display:flex;align-items:baseline;gap:5px;letter-spacing:.3px;text-transform:uppercase;}
+.qreq{color:var(--accent2);font-size:14px;}
+.qhint{font-size:10px;color:rgba(169,209,218,.6);font-weight:400;margin-left:4px;text-transform:none;letter-spacing:0;}
+
+/* INPUTS */
+.finput{width:100%;height:52px;background:rgba(34,59,115,.6);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);font-size:16px;font-weight:400;padding:0 14px;outline:none;transition:border-color .2s,background .2s;}
+.finput:focus{border-color:var(--accent);background:rgba(34,59,115,.9);}
+.finput::placeholder{color:rgba(169,209,218,.4);}
+.ftextarea{width:100%;min-height:80px;background:rgba(34,59,115,.6);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);font-size:15px;font-weight:400;padding:12px 14px;outline:none;resize:none;line-height:1.6;transition:border-color .2s;}
+.ftextarea:focus{border-color:var(--accent);}
+.ftextarea::placeholder{color:rgba(169,209,218,.4);}
+.irow{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* TILES */
+.tiles{display:flex;flex-direction:column;gap:8px;}
+.tiles.col2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.tiles.col3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.tile{position:relative;cursor:pointer;}
+.tile input{position:absolute;opacity:0;pointer-events:none;width:0;height:0;}
+.tile-body{display:flex;align-items:center;gap:10px;background:rgba(34,59,115,.5);border:1.5px solid var(--border);border-radius:var(--r);padding:13px 14px;min-height:52px;transition:border-color .18s,background .18s,box-shadow .18s;}
+.tiles.col2 .tile-body,.tiles.col3 .tile-body{flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;padding:12px 6px;min-height:60px;}
+.tile-mark{width:18px;height:18px;border-radius:50%;border:2px solid rgba(95,174,182,.35);flex-shrink:0;transition:all .18s;}
+.tile-sq{width:18px;height:18px;border-radius:5px;border:2px solid rgba(95,174,182,.35);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;transition:all .18s;}
+.tiles.col2 .tile-mark,.tiles.col2 .tile-sq,.tiles.col3 .tile-mark,.tiles.col3 .tile-sq{display:none;}
+.tile-lbl{font-size:13px;font-weight:500;color:var(--light);line-height:1.3;}
+.tiles.col2 .tile-lbl,.tiles.col3 .tile-lbl{font-size:11.5px;color:var(--muted);}
+.tile input:checked~.tile-body{border-color:var(--accent);background:rgba(95,174,182,.16);box-shadow:0 0 0 1px rgba(95,174,182,.2);}
+.tile input:checked~.tile-body .tile-mark{border-color:var(--accent);background:var(--accent);}
+.tile input:checked~.tile-body .tile-sq{border-color:var(--accent);background:var(--accent);color:#19224A;}
+.tile input:checked~.tile-body .tile-lbl{color:#fff;}
+.yesno{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.tile.yes input:checked~.tile-body{border-color:var(--green);background:rgba(111,199,209,.14);box-shadow:0 0 0 1px rgba(111,199,209,.2);}
+.tile.yes input:checked~.tile-body .tile-lbl{color:var(--green);}
+.tile.no input:checked~.tile-body{border-color:var(--red);background:rgba(224,92,110,.12);}
+.tile.no input:checked~.tile-body .tile-lbl{color:var(--red);}
+
+/* NAVBAR */
+.navbar{flex-shrink:0;height:74px;background:linear-gradient(90deg,#19224A,#1c2d5c);border-top:1px solid var(--border);display:flex;align-items:center;padding:10px 16px 16px;gap:10px;}
+.btn-back{height:50px;padding:0 18px;border-radius:var(--r);background:rgba(95,174,182,.08);border:1.5px solid rgba(95,174,182,.25);color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;flex-shrink:0;transition:all .15s;}
+.btn-back:active{border-color:var(--accent);color:var(--accent);}
+.btn-next{flex:1;height:50px;border-radius:var(--r);background:linear-gradient(135deg,#5FAEB6,#6FC7D1);border:none;color:#19224A;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 20px rgba(95,174,182,.35);letter-spacing:.3px;}
+.btn-next:active{opacity:.85;}
+.btn-submit{flex:1;height:50px;border-radius:var(--r);background:linear-gradient(135deg,#5FAEB6,#A9D1DA);border:none;color:#19224A;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 20px rgba(169,209,218,.3);letter-spacing:.3px;}
+.btn-submit:active{opacity:.85;}
+.spinner{width:16px;height:16px;border:2px solid rgba(25,34,74,.3);border-top-color:#19224A;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* SUMMARY */
+#summary-screen{display:none;flex-direction:column;height:100%;background:var(--bg);}
+#summary-screen.active{display:flex;}
+.sum-scroll{flex:1;overflow-y:auto;padding:20px 16px 100px;}
+.sum-banner{background:linear-gradient(135deg,rgba(34,59,115,.8),rgba(28,45,92,.9));border:1px solid var(--border);border-radius:16px;padding:28px 20px;text-align:center;margin-bottom:20px;}
+.sum-check{width:58px;height:58px;border-radius:50%;background:rgba(111,199,209,.14);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px;}
+.sum-banner h2{font-family:'Montserrat',sans-serif;font-size:20px;font-weight:700;color:#fff;margin-bottom:6px;}
+.sum-banner p{font-size:13px;color:var(--muted);}
+.sum-section{background:rgba(34,59,115,.5);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px;}
+.sum-sec-title{padding:11px 16px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--accent2);letter-spacing:2px;text-transform:uppercase;background:rgba(95,174,182,.07);}
+.sum-row{padding:10px 16px;border-bottom:1px solid rgba(95,174,182,.08);display:flex;flex-direction:column;gap:2px;}
+.sum-row:last-child{border-bottom:none;}
+.sum-key{font-size:10.5px;color:var(--muted);letter-spacing:.3px;text-transform:uppercase;}
+.sum-val{font-size:13.5px;font-weight:500;color:var(--text);}
+.sum-val.empty{color:rgba(169,209,218,.3);font-style:italic;font-size:12px;}
+.btn-new{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:50px;border-radius:var(--r);margin:10px 0 0;background:rgba(34,59,115,.5);border:1.5px solid var(--border);color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;}
+.btn-wa-group{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:44px;border-radius:var(--r);margin:8px 0 0;background:transparent;border:1px solid rgba(95,174,182,.25);color:rgba(169,209,218,.6);font-size:12px;font-weight:600;cursor:pointer;font-family:"Montserrat",sans-serif;transition:all .15s;}
+.btn-photo{width:100%;height:50px;border-radius:var(--r);background:rgba(95,174,182,.12);border:1.5px dashed var(--accent);color:var(--accent2);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Montserrat',sans-serif;}
+.btn-photo:active{background:rgba(95,174,182,.22);}
+.photo-previews{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.photo-thumb{position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:2px solid var(--border);}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;}
+.photo-del{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:rgba(224,92,110,.9);border:none;color:#fff;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;}
+.btn-print{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:50px;border-radius:var(--r);margin:10px 0 0;background:linear-gradient(135deg,#5FAEB6,#6FC7D1);border:none;color:#19224A;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;box-shadow:0 4px 16px rgba(95,174,182,.3);}
+.btn-print:active{opacity:.8;}
+.sum-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.btn-quot{height:50px;border-radius:var(--r);background:rgba(34,59,115,.7);border:1.5px solid var(--accent);color:var(--accent2);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s;font-family:'Montserrat',sans-serif;}
+.btn-quot:active{background:rgba(95,174,182,.2);}
+.btn-whatsapp{height:50px;border-radius:var(--r);background:#25D366;border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s;font-family:'Montserrat',sans-serif;box-shadow:0 4px 14px rgba(37,211,102,.3);}
+.btn-whatsapp:active{opacity:.8;}
+
+/* UPDATE BAR */
+.update-bar{display:none;position:fixed;bottom:82px;left:12px;right:12px;z-index:500;background:linear-gradient(135deg,#223B73,#19224A);border:1px solid var(--accent);border-radius:14px;padding:12px 16px;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(25,34,74,.6);animation:slideUp .3s ease;}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.update-bar.show{display:flex;}
+.update-txt{flex:1;font-size:12px;font-weight:600;color:var(--light);line-height:1.4;}
+.update-txt span{display:block;font-size:10px;color:var(--muted);font-weight:400;margin-top:1px;}
+.update-btn{height:34px;padding:0 14px;border-radius:8px;background:linear-gradient(135deg,#5FAEB6,#6FC7D1);border:none;color:#19224A;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Montserrat',sans-serif;}
+
+/* TOAST */
+.toast{position:fixed;top:66px;left:50%;transform:translateX(-50%) translateY(-8px);background:rgba(34,59,115,.95);border:1px solid var(--border);border-radius:20px;padding:8px 18px;font-size:11.5px;color:var(--light);opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;white-space:nowrap;z-index:999;box-shadow:0 4px 16px rgba(25,34,74,.4);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <span class="brand">VYRA</span>
+  <span class="ver-badge" id="version-badge"></span>
+  <div class="topbar-mid"></div>
+  <input class="tech-input" id="f-tech" type="text" data-i18n-ph="techNamePh" placeholder="👷 Your name" autocomplete="off" oninput="onTechInput()"/>
+  <div class="tech-display" id="tech-display" style="display:none"></div>
+  <div class="step-badge" id="step-counter"><b>1</b> / 4</div>
+  <button class="lang-btn" id="lang-btn" onclick="toggleLang()">🌐 <span id="lang-label">AR</span></button>
+</div>
+<div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+
+<!-- UPDATE BANNER -->
+<div class="update-bar" id="update-bar">
+  <div class="update-txt">
+    🔄 <span data-i18n="updateAvailable">New version available</span>
+    <span data-i18n="updateSub">Tap to update — takes 2 seconds</span>
+  </div>
+  <button class="update-btn" onclick="applyUpdate()" data-i18n="updateBtn">Update</button>
+</div>
+
+<div class="steps-wrap" id="steps-wrap">
+
+<!-- STEP 1 -->
+<div class="step active" id="step-1">
+  <div class="step-hdr"><div class="step-ico">👤</div><div class="step-title-wrap"><div class="step-num" id="lbl-1">Step 01</div><div class="step-name" data-i18n="s1title">Client &amp; Property</div></div></div>
+  <div class="qblock"><div class="qlabel" data-i18n="clientName">Client Full Name <span class="qreq">*</span></div><input class="finput" id="f-name" type="text" data-i18n-ph="clientNamePh" placeholder="Full name" autocomplete="off"/></div>
+  <div class="qblock"><div class="qlabel" data-i18n="phone">Phone Number <span class="qreq">*</span></div><input class="finput" id="f-phone" type="tel" data-i18n-ph="phonePh" placeholder="+20 …"/></div>
+  <div class="qblock"><div class="qlabel" data-i18n="location">Location / Area <span class="qreq">*</span></div><input class="finput" id="f-loc" type="text" data-i18n-ph="locationPh" placeholder="City, district, street"/></div>
+  <div class="qblock">
+    <div class="qlabel" data-i18n="propType">Property Type</div>
+    <div class="tiles col3">
+      <label class="tile"><input type="radio" name="propType" value="Apartment"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="apt">Apartment</span></span></label>
+      <label class="tile"><input type="radio" name="propType" value="Villa"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="villa">Villa</span></span></label>
+      <label class="tile"><input type="radio" name="propType" value="Office"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="office">Office</span></span></label>
+      <label class="tile"><input type="radio" name="propType" value="Shop"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="shop">Shop</span></span></label>
+      <label class="tile"><input type="radio" name="propType" value="Warehouse"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="warehouse">Warehouse</span></span></label>
+      <label class="tile"><input type="radio" name="propType" value="Other"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="other">Other</span></span></label>
+    </div>
+  </div>
+  <div class="irow">
+    <div class="qblock"><div class="qlabel" data-i18n="floors">Floors</div><input class="finput" id="f-floors" type="number" data-i18n-ph="floorsPh" placeholder="3" inputmode="numeric"/></div>
+    <div class="qblock"><div class="qlabel" data-i18n="area">Area (m²)</div><input class="finput" id="f-area" type="number" data-i18n-ph="areaPh" placeholder="200" inputmode="numeric"/></div>
+  </div>
+  <div class="qblock">
+    <div class="qlabel"><span data-i18n="systemsReq">Systems Required</span> <span class="qreq">*</span><span class="qhint" data-i18n="selectAll">Select all that apply</span></div>
+    <div class="tiles">
+      <label class="tile"><input type="checkbox" name="systems" value="CCTV"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="sysCCTV">📷 CCTV Surveillance</span></span></label>
+      <label class="tile"><input type="checkbox" name="systems" value="Network"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="sysNet">🌐 Networking &amp; Wi-Fi</span></span></label>
+      <label class="tile"><input type="checkbox" name="systems" value="Smart"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="sysSmart">🏠 Smart Home / Building</span></span></label>
+      <label class="tile"><input type="checkbox" name="systems" value="Sound"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="sysSound">🔊 Sound System</span></span></label>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 2: CCTV -->
+<div class="step" id="step-2">
+  <div class="step-hdr"><div class="step-ico">📷</div><div class="step-title-wrap"><div class="step-num" id="lbl-2">Step 02</div><div class="step-name" data-i18n="s2title">CCTV Survey</div></div></div>
+  <div class="qblock">
+    <div class="qlabel"><span data-i18n="covAreas">Coverage Areas</span><span class="qhint" data-i18n="selectAllShort">Select all</span></div>
+    <div class="tiles col2">
+      <label class="tile"><input type="checkbox" name="cctvAreas" value="Main Entrance"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="mainEnt">Main Entrance</span></span></label>
+      <label class="tile"><input type="checkbox" name="cctvAreas" value="Back Entrance"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="backEnt">Back Entrance</span></span></label>
+      <label class="tile"><input type="checkbox" name="cctvAreas" value="Garage"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="garage">Garage</span></span></label>
+      <label class="tile"><input type="checkbox" name="cctvAreas" value="Garden"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="garden">Garden</span></span></label>
+      <label class="tile"><input type="checkbox" name="cctvAreas" value="Corridors"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="corridors">Corridors</span></span></label>
+      <label class="tile"><input type="checkbox" name="cctvAreas" value="Perimeter"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="perimeter">Perimeter</span></span></label>
+      <label class="tile"><input type="checkbox" name="cctvAreas" value="Office Areas"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="officeAreas">Office Areas</span></span></label>
+      <label class="tile"><input type="checkbox" name="cctvAreas" value="Warehouse"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="warehouseLbl">Warehouse</span></span></label>
+    </div>
+  </div>
+  <div class="qblock">
+    <div class="qlabel" data-i18n="lighting">Lighting Conditions</div>
+    <div class="tiles">
+      <label class="tile"><input type="radio" name="cctvLight" value="Good"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="lgGood">Good / Normal</span></span></label>
+      <label class="tile"><input type="radio" name="cctvLight" value="Low Light"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="lgLow">Low light / dim</span></span></label>
+      <label class="tile"><input type="radio" name="cctvLight" value="Direct Sunlight"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="lgSun">Direct sunlight / glare</span></span></label>
+    </div>
+  </div>
+  <div class="irow">
+    <div class="qblock"><div class="qlabel" data-i18n="nightMon">Night monitoring?</div><div class="yesno"><label class="tile yes"><input type="radio" name="cctvNight" value="Yes"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="yes">Yes</span></span></label><label class="tile no"><input type="radio" name="cctvNight" value="No"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="no">No</span></span></label></div></div>
+    <div class="qblock"><div class="qlabel" data-i18n="cableRoute">Cable routing?</div><div class="yesno"><label class="tile yes"><input type="radio" name="cctvCable" value="Yes"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="yes">Yes</span></span></label><label class="tile no"><input type="radio" name="cctvCable" value="No"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="no">No</span></span></label></div></div>
+  </div>
+  <div class="qblock"><div class="qlabel" data-i18n="cctvNotes">CCTV Notes</div><textarea class="ftextarea" id="f-cctvNotes" data-i18n-ph="cctvNotesPh" placeholder="Blind spots, unusual conditions…"></textarea></div>
+</div>
+
+<!-- STEP 3: NETWORK -->
+<div class="step" id="step-3">
+  <div class="step-hdr"><div class="step-ico">🌐</div><div class="step-title-wrap"><div class="step-num" id="lbl-3">Step 03</div><div class="step-name" data-i18n="s3title">Network &amp; Wi-Fi</div></div></div>
+  <div class="qblock"><div class="qlabel" data-i18n="existingRouter">Existing router / ISP line?</div><div class="yesno"><label class="tile yes"><input type="radio" name="netRouter" value="Yes"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="yes">Yes</span></span></label><label class="tile no"><input type="radio" name="netRouter" value="No"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="no">No</span></span></label></div></div>
+  <div class="qblock">
+    <div class="qlabel"><span data-i18n="mainIssues">Main Issues</span><span class="qhint" data-i18n="selectAllShort">Select all</span></div>
+    <div class="tiles col2">
+      <label class="tile"><input type="checkbox" name="netIssues" value="Weak Signal"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="weakSig">Weak Signal</span></span></label>
+      <label class="tile"><input type="checkbox" name="netIssues" value="Disconnections"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="discon">Disconnections</span></span></label>
+      <label class="tile"><input type="checkbox" name="netIssues" value="Slow Speed"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="slowSpd">Slow Speed</span></span></label>
+      <label class="tile"><input type="checkbox" name="netIssues" value="Dead Zones"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="deadZone">Dead Zones</span></span></label>
+    </div>
+  </div>
+  <div class="qblock"><div class="qlabel" data-i18n="highUsage">High-usage areas</div><textarea class="ftextarea" id="f-netUsage" data-i18n-ph="highUsagePh" placeholder="e.g. Conference room, server room…"></textarea></div>
+  <div class="irow">
+    <div class="qblock"><div class="qlabel" data-i18n="cat6">Cat6 cabling?</div><div class="yesno"><label class="tile yes"><input type="radio" name="netCat6" value="Yes"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="yes">Yes</span></span></label><label class="tile no"><input type="radio" name="netCat6" value="No"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="no">No</span></span></label></div></div>
+    <div class="qblock"><div class="qlabel" data-i18n="poe">PoE switch?</div><div class="yesno"><label class="tile yes"><input type="radio" name="netPoE" value="Yes"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="yes">Yes</span></span></label><label class="tile no"><input type="radio" name="netPoE" value="No"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="no">No</span></span></label></div></div>
+  </div>
+</div>
+
+<!-- STEP 4: SMART -->
+<div class="step" id="step-4">
+  <div class="step-hdr"><div class="step-ico">🏠</div><div class="step-title-wrap"><div class="step-num" id="lbl-4">Step 04</div><div class="step-name" data-i18n="s4title">Smart System</div></div></div>
+  <div class="qblock">
+    <div class="qlabel"><span data-i18n="smartSubs">Required Sub-systems</span><span class="qhint" data-i18n="selectAllShort">Select all</span></div>
+    <div class="tiles col2">
+      <label class="tile"><input type="checkbox" name="smartSub" value="Lighting"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="lighting2">💡 Lighting</span></span></label>
+      <label class="tile"><input type="checkbox" name="smartSub" value="AC Control"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="ac">❄️ AC Control</span></span></label>
+      <label class="tile"><input type="checkbox" name="smartSub" value="Cameras"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="cameras">📷 Cameras</span></span></label>
+      <label class="tile"><input type="checkbox" name="smartSub" value="Motion"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="motion">🚶 Motion</span></span></label>
+      <label class="tile"><input type="checkbox" name="smartSub" value="Door Sensors"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="doorSen">🚪 Door Sensors</span></span></label>
+      <label class="tile"><input type="checkbox" name="smartSub" value="Gas Sensor"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="gasSen">🔥 Gas Sensor</span></span></label>
+      <label class="tile"><input type="checkbox" name="smartSub" value="Water Leak"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="waterLeak">💧 Water Leak</span></span></label>
+    </div>
+  </div>
+  <div class="qblock">
+    <div class="qlabel" data-i18n="ctrlMethod">Control Method</div>
+    <div class="tiles">
+      <label class="tile"><input type="radio" name="smartCtrl" value="Mobile App"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="ctrlApp">Mobile App only</span></span></label>
+      <label class="tile"><input type="radio" name="smartCtrl" value="Wall Panel"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="ctrlPanel">Wall Panel only</span></span></label>
+      <label class="tile"><input type="radio" name="smartCtrl" value="Both"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="ctrlBoth">Both — App &amp; Panel</span></span></label>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 5: SOUND -->
+<div class="step" id="step-5">
+  <div class="step-hdr"><div class="step-ico">🔊</div><div class="step-title-wrap"><div class="step-num" id="lbl-5">Step 05</div><div class="step-name" data-i18n="s5title">Sound System</div></div></div>
+  <div class="qblock">
+    <div class="qlabel" data-i18n="spaceType">Space Type</div>
+    <div class="tiles col2">
+      <label class="tile"><input type="radio" name="soundSpace" value="Office"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="office">Office</span></span></label>
+      <label class="tile"><input type="radio" name="soundSpace" value="Shop"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="shop">Shop</span></span></label>
+      <label class="tile"><input type="radio" name="soundSpace" value="Villa"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="villa">Villa</span></span></label>
+      <label class="tile"><input type="radio" name="soundSpace" value="Outdoor"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="outdoor">Outdoor</span></span></label>
+    </div>
+  </div>
+  <div class="qblock">
+    <div class="qlabel"><span data-i18n="audioUse">Audio Use</span><span class="qhint" data-i18n="selectAllShort">Select all</span></div>
+    <div class="tiles">
+      <label class="tile"><input type="checkbox" name="soundUse" value="Background Music"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="bgMusic">🎵 Background Music</span></span></label>
+      <label class="tile"><input type="checkbox" name="soundUse" value="Announcements"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="announce">📢 Announcements / PA</span></span></label>
+      <label class="tile"><input type="checkbox" name="soundUse" value="General Sound"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="genSound">🔈 General Sound</span></span></label>
+    </div>
+  </div>
+  <div class="qblock"><div class="qlabel" data-i18n="multiZones">Multiple zones?</div><div class="yesno"><label class="tile yes"><input type="radio" name="soundZones" value="Yes"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="yes">Yes</span></span></label><label class="tile no"><input type="radio" name="soundZones" value="No"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="no">No</span></span></label></div></div>
+  <div class="qblock"><div class="qlabel" data-i18n="soundNotes">Sound Notes</div><textarea class="ftextarea" id="f-soundNotes" data-i18n-ph="soundNotesPh" placeholder="Room size, ceiling type…"></textarea></div>
+</div>
+
+<!-- STEP 6: INFRASTRUCTURE -->
+<div class="step" id="step-6">
+  <div class="step-hdr"><div class="step-ico">⚡</div><div class="step-title-wrap"><div class="step-num" id="lbl-6">Step 06</div><div class="step-name" data-i18n="s6title">Infrastructure</div></div></div>
+  <div class="qblock">
+    <div class="qlabel" data-i18n="powerAvail">Power Availability</div>
+    <div class="tiles">
+      <label class="tile"><input type="radio" name="infraPower" value="Good"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="pwrGood">Good — sufficient power points</span></span></label>
+      <label class="tile"><input type="radio" name="infraPower" value="Limited"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="pwrLtd">Limited — additional wiring needed</span></span></label>
+    </div>
+  </div>
+  <div class="qblock">
+    <div class="qlabel"><span data-i18n="cablePaths">Cable Routing Paths</span><span class="qhint" data-i18n="selectAllShort">Select all</span></div>
+    <div class="tiles col3">
+      <label class="tile"><input type="checkbox" name="infraCable" value="Ceiling"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="ceiling">Ceiling</span></span></label>
+      <label class="tile"><input type="checkbox" name="infraCable" value="Walls"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="walls">Walls</span></span></label>
+      <label class="tile"><input type="checkbox" name="infraCable" value="External"/><span class="tile-body"><span class="tile-sq">✓</span><span class="tile-lbl" data-i18n="external">External</span></span></label>
+    </div>
+  </div>
+  <div class="qblock"><div class="qlabel" data-i18n="rackNeeded">Network rack needed?</div><div class="yesno"><label class="tile yes"><input type="radio" name="infraRack" value="Yes"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="yes">Yes</span></span></label><label class="tile no"><input type="radio" name="infraRack" value="No"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="no">No</span></span></label></div></div>
+</div>
+
+<!-- STEP 7: FIELD NOTES -->
+<div class="step" id="step-7">
+  <div class="step-hdr"><div class="step-ico">🔧</div><div class="step-title-wrap"><div class="step-num" id="lbl-7">Step 07</div><div class="step-name" data-i18n="s7title">Field Notes</div></div></div>
+  <div class="qblock"><div class="qlabel" data-i18n="keyObs">Key Observations</div><textarea class="ftextarea" id="f-obs" data-i18n-ph="keyObsPh" placeholder="Site conditions, access points…" rows="3"></textarea></div>
+  <div class="qblock"><div class="qlabel" data-i18n="risks">Risks &amp; Challenges</div><textarea class="ftextarea" id="f-risks" data-i18n-ph="risksPh" placeholder="Installation risks, limitations…" rows="3"></textarea></div>
+  <div class="qblock"><div class="qlabel" data-i18n="sugDesign">Suggested Design</div><textarea class="ftextarea" id="f-design" data-i18n-ph="sugDesignPh" placeholder="Recommended layout, equipment…" rows="3"></textarea></div>
+  <div class="qblock">
+    <div class="qlabel" data-i18n="sitePhoto">Site Photos <span class="qhint" data-i18n="photoHint">Up to 3 photos</span></div>
+    <input type="file" id="f-photos" accept="image/*" multiple capture="environment" style="display:none" onchange="handlePhotos(this)"/>
+    <button class="btn-photo" onclick="$('f-photos').click()" type="button">📷 <span data-i18n="takePhoto">Take / Choose Photos</span></button>
+    <div class="photo-previews" id="photo-previews"></div>
+  </div>
+</div>
+
+<!-- STEP 8: NEXT ACTION -->
+<div class="step" id="step-8">
+  <div class="step-hdr"><div class="step-ico">🚀</div><div class="step-title-wrap"><div class="step-num" id="lbl-8">Step 08</div><div class="step-name" data-i18n="s8title">Next Action</div></div></div>
+  <div class="qblock">
+    <div class="qlabel"><span data-i18n="nextAction">Action After This Survey</span> <span class="qreq">*</span></div>
+    <div class="tiles">
+      <label class="tile"><input type="radio" name="nextAction" value="Send Quotation"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="sendQuote">📄 Send formal quotation to client</span></span></label>
+      <label class="tile"><input type="radio" name="nextAction" value="Follow-up Visit"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="followUp">📅 Schedule a follow-up visit</span></span></label>
+      <label class="tile"><input type="radio" name="nextAction" value="Waiting for Client"/><span class="tile-body"><span class="tile-mark"></span><span class="tile-lbl" data-i18n="waiting">⏳ Waiting for client decision</span></span></label>
+    </div>
+  </div>
+</div>
+
+</div><!-- /steps-wrap -->
+
+<div class="navbar" id="navBar">
+  <button class="btn-back" id="btnBack" onclick="goBack()" style="display:none" data-i18n="back">← Back</button>
+  <button class="btn-next" id="btnNext" onclick="goNext()" data-i18n="continue">Continue →</button>
+</div>
+
+<div id="summary-screen">
+  <div class="sum-scroll">
+    <div class="sum-banner" id="sum-banner">
+      <div class="sum-check">✓</div>
+      <h2 data-i18n="submitted">Survey Submitted</h2>
+      <p data-i18n="savedSheets">Saved to Google Sheets.</p>
+    </div>
+    <div id="sum-content"></div>
+    <div class="sum-actions">
+      <button class="btn-quot" onclick="openQuotation()">📄 <span data-i18n="createQuot">Create Quotation</span></button>
+      <button class="btn-whatsapp" onclick="shareWhatsApp()">💬 <span data-i18n="shareWA">Share on WhatsApp</span></button>
+    </div>
+    <button class="btn-print" onclick="printSurvey()">🖨️ <span data-i18n="printSurvey">Print Survey</span></button>
+    <button class="btn-wa-group" onclick="setWaGroup()" id="btn-wa-group">⚙️ <span data-i18n="waGroupSet">Set WhatsApp Group</span></button>
+    <button class="btn-new" onclick="newSurvey()" data-i18n="newSurvey">＋ New Survey</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+//  TRANSLATIONS
+// ══════════════════════════════════════════
+const T = {
+  en: {
+    // Navigation
+    back:'← Back', continue:'Continue →', submitBtn:'Submit Survey ✓',
+    // Update bar
+    updateAvailable:'New version available', updateSub:'Tap to update — takes 2 seconds', updateBtn:'Update',
+    // Step labels
+    stepOf:'Step', of:'of',
+    // Step titles
+    s1title:'Client & Property', s2title:'CCTV Survey', s3title:'Network & Wi-Fi',
+    s4title:'Smart System', s5title:'Sound System', s6title:'Infrastructure',
+    s7title:'Field Notes', s8title:'Next Action',
+    // Step 1
+    clientName:'Client Full Name', clientNamePh:'Full name',
+    techName:'Technician Name', techNamePh:'Your name',
+    phone:'Phone Number', phonePh:'+20 …', location:'Location / Area', locationPh:'City, district, street',
+    propType:'Property Type', floors:'Floors', floorsPh:'e.g. 3', area:'Area (m²)', areaPh:'e.g. 200',
+    systemsReq:'Systems Required', selectAll:'Select all that apply', selectAllShort:'Select all',
+    apt:'Apartment', villa:'Villa', office:'Office', shop:'Shop', warehouse:'Warehouse', other:'Other',
+    sysCCTV:'📷 CCTV Surveillance', sysNet:'🌐 Networking & Wi-Fi',
+    sysSmart:'🏠 Smart Home / Building', sysSound:'🔊 Sound System',
+    // Step 2
+    covAreas:'Coverage Areas', mainEnt:'Main Entrance', backEnt:'Back Entrance',
+    garage:'Garage', garden:'Garden', corridors:'Corridors', perimeter:'Perimeter',
+    officeAreas:'Office Areas', warehouseLbl:'Warehouse',
+    lighting:'Lighting Conditions', lgGood:'Good / Normal', lgLow:'Low light / dim', lgSun:'Direct sunlight / glare',
+    nightMon:'Night monitoring?', cableRoute:'Cable routing?',
+    cctvNotes:'CCTV Notes', cctvNotesPh:'Blind spots, unusual conditions…',
+    // Step 3
+    existingRouter:'Existing router / ISP line?', mainIssues:'Main Issues',
+    weakSig:'Weak Signal', discon:'Disconnections', slowSpd:'Slow Speed', deadZone:'Dead Zones',
+    highUsage:'High-usage areas', highUsagePh:'e.g. Conference room, server room…',
+    cat6:'Cat6 cabling?', poe:'PoE switch?',
+    // Step 4
+    smartSubs:'Required Sub-systems', lighting2:'💡 Lighting', ac:'❄️ AC Control',
+    cameras:'📷 Cameras', motion:'🚶 Motion', doorSen:'🚪 Door Sensors',
+    gasSen:'🔥 Gas Sensor', waterLeak:'💧 Water Leak',
+    ctrlMethod:'Control Method', ctrlApp:'Mobile App only', ctrlPanel:'Wall Panel only', ctrlBoth:'Both — App & Panel',
+    // Step 5
+    spaceType:'Space Type', outdoor:'Outdoor',
+    audioUse:'Audio Use', bgMusic:'🎵 Background Music', announce:'📢 Announcements / PA', genSound:'🔈 General Sound',
+    multiZones:'Multiple zones?', soundNotes:'Sound Notes', soundNotesPh:'Room size, ceiling type…',
+    // Step 6
+    powerAvail:'Power Availability', pwrGood:'Good — sufficient power points', pwrLtd:'Limited — additional wiring needed',
+    cablePaths:'Cable Routing Paths', ceiling:'Ceiling', walls:'Walls', external:'External',
+    rackNeeded:'Network rack needed?',
+    // Step 7
+    keyObs:'Key Observations', keyObsPh:'Site conditions, access points…',
+    risks:'Risks & Challenges', risksPh:'Installation risks, limitations…',
+    sugDesign:'Suggested Design', sugDesignPh:'Recommended layout, equipment…',
+    // Step 8
+    nextAction:'Action After This Survey',
+    sendQuote:'📄 Send formal quotation to client',
+    followUp:'📅 Schedule a follow-up visit',
+    waiting:'⏳ Waiting for client decision',
+    // Common
+    yes:'Yes', no:'No',
+    // Summary
+    submitted:'Survey Submitted', savedSheets:'Saved to Google Sheets successfully.',
+    savedOffline:'Saved Offline', offlineMsg:'No internet. Will sync automatically when you reconnect.',
+    newSurvey:'＋ New Survey',
+    printSurvey:'Print Survey',
+    createQuot:'Create Quotation',
+    shareWA:'Share on WhatsApp',
+    sitePhoto:'Site Photos',
+    photoHint:'Up to 3 photos',
+    takePhoto:'Take / Choose Photos',
+    waGroupSet:'Set WhatsApp Group',
+    // Alerts
+    alertFill:'Please fill Name, Technician, Phone and Location.',
+    alertSystem:'Please select at least one system.',
+    alertAction:'Please select the next action.',
+    submitting:'Submitting…',
+  },
+  ar: {
+    // Navigation
+    back:'رجوع ←', continue:'متابعة →', submitBtn:'إرسال الاستبيان ✓',
+    // Update bar
+    updateAvailable:'يوجد إصدار جديد', updateSub:'اضغط للتحديث — يستغرق ثانيتين', updateBtn:'تحديث',
+    // Step labels
+    stepOf:'خطوة', of:'من',
+    // Step titles
+    s1title:'بيانات العميل والعقار', s2title:'معاينة CCTV', s3title:'الشبكة و Wi-Fi',
+    s4title:'المنزل الذكي', s5title:'نظام الصوت', s6title:'البنية التحتية',
+    s7title:'ملاحظات الفني', s8title:'الخطوة التالية',
+    // Step 1
+    clientName:'اسم العميل كاملاً', clientNamePh:'الاسم الكامل',
+    techName:'اسم الفني', techNamePh:'اسمك',
+    phone:'رقم الهاتف', phonePh:'٢٠+ …', location:'الموقع / المنطقة', locationPh:'المدينة، الحي، الشارع',
+    propType:'نوع العقار', floors:'عدد الأدوار', floorsPh:'مثال: ٣', area:'المساحة (م²)', areaPh:'مثال: ٢٠٠',
+    systemsReq:'الأنظمة المطلوبة', selectAll:'اختر كل ما ينطبق', selectAllShort:'اختر الكل',
+    apt:'شقة', villa:'فيلا', office:'مكتب', shop:'محل', warehouse:'مستودع', other:'أخرى',
+    sysCCTV:'📷 كاميرات المراقبة', sysNet:'🌐 شبكات و Wi-Fi',
+    sysSmart:'🏠 المنزل الذكي', sysSound:'🔊 نظام الصوت',
+    // Step 2
+    covAreas:'مناطق التغطية', mainEnt:'المدخل الرئيسي', backEnt:'المدخل الخلفي',
+    garage:'الجراج', garden:'الحديقة', corridors:'الممرات', perimeter:'المحيط الخارجي',
+    officeAreas:'مناطق المكاتب', warehouseLbl:'المستودع',
+    lighting:'ظروف الإضاءة', lgGood:'جيدة / طبيعية', lgLow:'إضاءة منخفضة', lgSun:'ضوء شمس مباشر',
+    nightMon:'مراقبة ليلية؟', cableRoute:'هل يوجد مسار لكابل؟',
+    cctvNotes:'ملاحظات الكاميرات', cctvNotesPh:'نقاط عمياء، ظروف غير عادية…',
+    // Step 3
+    existingRouter:'هل يوجد راوتر / خط إنترنت؟', mainIssues:'المشاكل الرئيسية',
+    weakSig:'إشارة ضعيفة', discon:'انقطاع متكرر', slowSpd:'سرعة بطيئة', deadZone:'مناطق بدون إشارة',
+    highUsage:'مناطق الاستخدام العالي', highUsagePh:'مثال: غرفة الاجتماعات، غرفة السيرفر…',
+    cat6:'هل يلزم كابل Cat6؟', poe:'هل يلزم PoE Switch؟',
+    // Step 4
+    smartSubs:'الأنظمة الفرعية المطلوبة', lighting2:'💡 التحكم في الإضاءة', ac:'❄️ التحكم في التكييف',
+    cameras:'📷 تكامل الكاميرات', motion:'🚶 حساسات الحركة', doorSen:'🚪 حساسات الأبواب',
+    gasSen:'🔥 حساس الغاز', waterLeak:'💧 حساس تسرب المياه',
+    ctrlMethod:'طريقة التحكم', ctrlApp:'تطبيق الموبايل فقط', ctrlPanel:'لوحة جدارية فقط', ctrlBoth:'كلاهما — تطبيق ولوحة',
+    // Step 5
+    spaceType:'نوع المكان', outdoor:'خارجي',
+    audioUse:'استخدام الصوت', bgMusic:'🎵 موسيقى خلفية', announce:'📢 إعلانات / PA', genSound:'🔈 صوت عام',
+    multiZones:'هل تلزم مناطق متعددة؟', soundNotes:'ملاحظات الصوت', soundNotesPh:'مساحة الغرفة، نوع السقف…',
+    // Step 6
+    powerAvail:'توفر الكهرباء', pwrGood:'جيد — يوجد نقاط كافية', pwrLtd:'محدود — يلزم توصيلات إضافية',
+    cablePaths:'مسارات الكابلات المتاحة', ceiling:'السقف', walls:'الجدران', external:'خارجي',
+    rackNeeded:'هل يلزم خزانة شبكة (Rack)؟',
+    // Step 7
+    keyObs:'الملاحظات الرئيسية', keyObsPh:'حالة الموقع، نقاط الدخول…',
+    risks:'المخاطر والتحديات', risksPh:'مخاطر التركيب، القيود…',
+    sugDesign:'التصميم المقترح', sugDesignPh:'التوصية بالتخطيط والمعدات…',
+    // Step 8
+    nextAction:'الإجراء بعد المعاينة',
+    sendQuote:'📄 إرسال عرض سعر للعميل',
+    followUp:'📅 جدولة زيارة متابعة',
+    waiting:'⏳ انتظار قرار العميل',
+    // Common
+    yes:'نعم', no:'لا',
+    // Summary
+    submitted:'تم إرسال الاستبيان', savedSheets:'تم الحفظ في Google Sheets بنجاح.',
+    savedOffline:'تم الحفظ أوفلاين', offlineMsg:'لا يوجد إنترنت. سيتم المزامنة تلقائياً عند الاتصال.',
+    newSurvey:'＋ استبيان جديد',
+    printSurvey:'طباعة الاستبيان',
+    createQuot:'إنشاء عرض سعر',
+    shareWA:'مشاركة على واتساب',
+    sitePhoto:'صور الموقع',
+    photoHint:'حتى 3 صور',
+    takePhoto:'التقاط / اختيار صور',
+    waGroupSet:'تعيين مجموعة واتساب',
+    // Alerts
+    alertFill:'الرجاء تعبئة الاسم واسم الفني والهاتف والموقع.',
+    alertSystem:'الرجاء اختيار نظام واحد على الأقل.',
+    alertAction:'الرجاء اختيار الخطوة التالية.',
+    submitting:'جاري الإرسال…',
+  }
+};
+
+// ══════════════════════════════════════════
+//  LANGUAGE ENGINE
+// ══════════════════════════════════════════
+let lang = localStorage.getItem('vyra_lang') || 'en';
+
+function applyLang() {
+  const t = T[lang];
+  const isAr = lang === 'ar';
+
+  // Set HTML dir and lang — cascades direction:rtl to all children
+  document.documentElement.lang = lang;
+  document.documentElement.dir = isAr ? 'rtl' : 'ltr';
+  // Explicit body direction for mobile WebKit compatibility
+  document.body.style.direction = isAr ? 'rtl' : 'ltr';
+  document.body.style.textAlign = isAr ? 'right' : '';
+
+  // Translate all data-i18n elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (T[lang][key] !== undefined) {
+      const req  = el.querySelector('.qreq');
+      const hint = el.querySelector('.qhint');
+      el.textContent = T[lang][key];
+      // In RTL: put * before text (visually on left = start of Arabic)
+      // In LTR: put * after text (visually on right = end of English)
+      if (req) {
+        if (isAr) el.insertBefore(req, el.firstChild);
+        else el.appendChild(req);
+      }
+      if (hint) el.appendChild(hint);
+    }
+  });
+
+  // Translate placeholders
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    const key = el.getAttribute('data-i18n-ph');
+    if (t[key] !== undefined) el.placeholder = t[key];
+  });
+
+  // Update lang toggle button
+  document.getElementById('lang-label').textContent = isAr ? 'EN' : 'AR';
+  // Update tech input placeholder
+  const techIn = document.getElementById('f-tech');
+  if(techIn) techIn.placeholder = '👷 ' + (T[lang]['techNamePh'] || 'Your name');
+
+  // Re-render current step label (set dynamically, not via data-i18n)
+  showStep(sequence[seqIdx]);
+
+  // Update nav buttons
+  updateUI();
+}
+
+function toggleLang() {
+  lang = lang === 'en' ? 'ar' : 'en';
+  localStorage.setItem('vyra_lang', lang);
+  applyLang();
+}
+
+function t(key) {
+  return T[lang][key] || T['en'][key] || key;
+}
+
+// ══════════════════════════════════════════
+//  APP CORE
+// ══════════════════════════════════════════
+const WEB_APP_URL='https://script.google.com/macros/s/AKfycbxb50elr8VUxvKuMRtWBBMyGKTiS8bIDRwlQolQsuTdGC_opFKKuOlc39w7zQx7B_54/exec';
+const SYSTEM_STEPS={CCTV:2,Network:3,Smart:4,Sound:5};
+const ALWAYS_FIRST=[1],ALWAYS_LAST=[6,7,8];
+let sequence=[1,6,7,8],seqIdx=0;
+const $=id=>document.getElementById(id);
+
+function updateTechDisplay(){
+  const v=$('f-tech').value.trim();
+  $('tech-display').textContent='👷 '+(v||'—');
+}
+
+function buildSequence(){
+  const sel=[...document.querySelectorAll('[name="systems"]:checked')].map(e=>e.value);
+  const mid=Object.entries(SYSTEM_STEPS).filter(([k])=>sel.includes(k)).map(([,v])=>v).sort((a,b)=>a-b);
+  sequence=[...ALWAYS_FIRST,...mid,...ALWAYS_LAST];
+}
+
+function goNext(){
+  const id=sequence[seqIdx];
+  if(!validate(id))return;
+  if(id===1)buildSequence();
+  if(seqIdx<sequence.length-1){seqIdx++;showStep(sequence[seqIdx]);updateUI();autosave();$('steps-wrap').scrollTop=0;}
+  else submitSurvey();
+}
+
+function goBack(){
+  if(seqIdx>0){seqIdx--;showStep(sequence[seqIdx]);updateUI();$('steps-wrap').scrollTop=0;}
+}
+
+function showStep(id){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  const el=$(`step-${id}`);if(!el)return;
+  el.classList.add('active');
+  const lbl=$(`lbl-${id}`);
+  if(lbl)lbl.textContent=`${t('stepOf')} ${nPad(seqIdx+1,2)} ${t('of')} ${n(sequence.length)}`;
+  // Toggle tech input: editable on step 1, display badge on all others
+  const techInput=$('f-tech');
+  const techDisplay=$('tech-display');
+  if(id===1){
+    techInput.style.display='block';
+    techDisplay.style.display='none';
+  } else {
+    techInput.style.display='none';
+    techDisplay.style.display='block';
+    techDisplay.textContent='👷 '+(techInput.value.trim()||'—');
+  }
+}
+
+function updateUI(){
+  const pos=seqIdx+1,total=sequence.length;
+  $('step-counter').innerHTML=`<b>${n(pos)}</b> / ${n(total)}`;
+  $('prog-fill').style.width=`${(pos/total)*100}%`;
+  $('btnBack').style.display=seqIdx>0?'flex':'none';
+  $('btnBack').textContent=t('back');
+  const isLast=seqIdx===sequence.length-1;
+  const btn=$('btnNext');
+  if(isLast){btn.textContent=t('submitBtn');btn.className='btn-submit';btn.onclick=submitSurvey;}
+  else{btn.textContent=t('continue');btn.className='btn-next';btn.onclick=goNext;}
+}
+
+function validate(id){
+  if(id===1){
+    if(!$('f-name').value.trim()||!$('f-tech').value.trim()||!$('f-phone').value.trim()||!$('f-loc').value.trim()){alert(t('alertFill'));return false;}
+    if(!document.querySelector('[name="systems"]:checked')){alert(t('alertSystem'));return false;}
+  }
+  if(id===8&&!document.querySelector('[name="nextAction"]:checked')){alert(t('alertAction'));return false;}
+  return true;
+}
+
+const radio=n=>{const e=document.querySelector(`[name="${n}"]:checked`);return e?e.value:'';};
+const checks=n=>[...document.querySelectorAll(`[name="${n}"]:checked`)].map(e=>e.value).join(', ')||'';
+const val=id=>{const e=$(id);return e?e.value.trim():'';};
+
+// ── FEATURE 1: Technician name persistence ──────────────
+const TECH_KEY = 'vyra_tech_name';
+const WA_GROUP_KEY = 'vyra_wa_group';
+
+function loadTechName(){
+  const saved = localStorage.getItem(TECH_KEY);
+  if(saved){ const el=$('f-tech'); if(el) el.value=saved; updateTechDisplay(); }
+}
+
+// Save tech name whenever it changes
+function onTechInput(){
+  const v = $('f-tech').value.trim();
+  if(v) localStorage.setItem(TECH_KEY, v);
+  autosave();
+  updateTechDisplay();
+}
+
+// ── FEATURE 4: Photo handling ───────────────────────────
+let surveyPhotos = []; // array of base64 strings
+
+function handlePhotos(input){
+  const files = Array.from(input.files).slice(0, 3 - surveyPhotos.length);
+  files.forEach(file => {
+    if(surveyPhotos.length >= 3) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      surveyPhotos.push(e.target.result);
+      renderPhotoThumbs();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = ''; // reset so same file can be re-selected
+}
+
+function renderPhotoThumbs(){
+  const wrap = $('photo-previews');
+  if(!wrap) return;
+  wrap.innerHTML = surveyPhotos.map((src,i) =>
+    `<div class="photo-thumb">
+      <img src="${src}" alt="photo ${i+1}"/>
+      <button class="photo-del" onclick="removePhoto(${i})">×</button>
+    </div>`
+  ).join('');
+}
+
+function removePhoto(idx){
+  surveyPhotos.splice(idx,1);
+  renderPhotoThumbs();
+}
+
+function collectData(){
+  return{
+    submittedAt: new Date().toISOString(),
+    client:{name:val('f-name'),tech:val('f-tech'),phone:val('f-phone'),location:val('f-loc'),propType:radio('propType'),floors:val('f-floors'),area:val('f-area'),systems:checks('systems')},
+    cctv:{areas:checks('cctvAreas'),light:radio('cctvLight'),night:radio('cctvNight'),cable:radio('cctvCable'),notes:val('f-cctvNotes')},
+    network:{router:radio('netRouter'),issues:checks('netIssues'),highUsage:val('f-netUsage'),cat6:radio('netCat6'),poe:radio('netPoE')},
+    smart:{systems:checks('smartSub'),control:radio('smartCtrl')},
+    sound:{space:radio('soundSpace'),use:checks('soundUse'),zones:radio('soundZones'),notes:val('f-soundNotes')},
+    infra:{power:radio('infraPower'),cable:checks('infraCable'),rack:radio('infraRack')},
+    tech:{observations:val('f-obs'),risks:val('f-risks'),design:val('f-design'),photos:surveyPhotos.length},
+    next:{action:radio('nextAction')}
+  };
+}
+
+function autosave(){try{localStorage.setItem('vyra_draft',JSON.stringify(collectData()));}catch(e){}}
+
+function loadDraft(){
+  try{
+    const raw=localStorage.getItem('vyra_draft');if(!raw)return;
+    const d=JSON.parse(raw);
+    const sv=(id,v)=>{const e=$(id);if(e&&v)e.value=v;};
+    const sr=(n,v)=>{if(!v)return;const e=document.querySelector(`[name="${n}"][value="${v}"]`);if(e)e.checked=true;};
+    const sc=(n,v)=>{if(!v)return;v.split(', ').forEach(x=>{const e=document.querySelector(`[name="${n}"][value="${x}"]`);if(e)e.checked=true;});};
+    const c=d.client||{};sv('f-name',c.name);sv('f-tech',c.tech);sv('f-phone',c.phone);sv('f-loc',c.location);sr('propType',c.propType);sv('f-floors',c.floors);sv('f-area',c.area);sc('systems',c.systems);
+    const cc=d.cctv||{};sc('cctvAreas',cc.areas);sr('cctvLight',cc.light);sr('cctvNight',cc.night);sr('cctvCable',cc.cable);sv('f-cctvNotes',cc.notes);
+    const n=d.network||{};sr('netRouter',n.router);sc('netIssues',n.issues);sv('f-netUsage',n.highUsage);sr('netCat6',n.cat6);sr('netPoE',n.poe);
+    const sm=d.smart||{};sc('smartSub',sm.systems);sr('smartCtrl',sm.control);
+    const so=d.sound||{};sr('soundSpace',so.space);sc('soundUse',so.use);sr('soundZones',so.zones);sv('f-soundNotes',so.notes);
+    const i=d.infra||{};sr('infraPower',i.power);sc('infraCable',i.cable);sr('infraRack',i.rack);
+    const t2=d.tech||{};sv('f-obs',t2.observations);sv('f-risks',t2.risks);sv('f-design',t2.design);
+    const nx=d.next||{};sr('nextAction',nx.action);
+  }catch(e){}
+}
+
+document.addEventListener('change',autosave);
+document.addEventListener('input',autosave);
+
+function saveOffline(data){try{const q=JSON.parse(localStorage.getItem('vyra_queue')||'[]');q.push({data,ts:Date.now()});localStorage.setItem('vyra_queue',JSON.stringify(q));}catch(e){}}
+
+async function flushQueue(){
+  try{
+    const q=JSON.parse(localStorage.getItem('vyra_queue')||'[]');if(!q.length)return;
+    const rem=[];
+    for(const item of q){try{await sendData(item.data);}catch(e){rem.push(item);}}
+    localStorage.setItem('vyra_queue',JSON.stringify(rem));
+    const n=q.length-rem.length;if(n>0)showToast('✓ '+n+' '+t('savedSheets'));
+  }catch(e){}
+}
+
+function sendData(data){
+  const url=WEB_APP_URL+'?data='+encodeURIComponent(JSON.stringify(data));
+  return fetch(url,{method:'GET',mode:'no-cors'});
+}
+
+async function submitSurvey(){
+  if(!validate(8))return;
+  const data=collectData();
+  const btn=$('btnNext');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span> '+t('submitting');
+
+  let ok=false;
+  try{await sendData(data);ok=true;}catch(e){ok=false;}
+  if(!ok)saveOffline(data);
+
+  try{localStorage.removeItem('vyra_draft');}catch(e){}
+  renderSummary(data);
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  $('navBar').style.display='none';
+  $('summary-screen').classList.add('active');
+  $('step-counter').innerHTML='<b>✓</b>';
+  $('prog-fill').style.width='100%';
+
+  $('sum-banner').innerHTML = ok
+    ? '<div class="sum-check">&#10003;</div><h2>'+t('submitted')+'</h2><p>'+t('savedSheets')+'</p>'
+    : '<div class="sum-check" style="border-color:#f59e0b;background:rgba(245,158,11,.1);font-size:22px">📵</div><h2>'+t('savedOffline')+'</h2><p style="color:#A9D1DA">'+t('offlineMsg')+'</p>';
+}
+
+function renderSummary(d){
+  const sel=(d.client.systems||'').split(', '),has=k=>sel.includes(k);
+  const tl=T[lang];
+  const all=[
+    {always:true,title:tl.s1title,rows:[
+      [tl.clientName,d.client.name],[tl.techName,d.client.tech],[tl.phone,d.client.phone],[tl.location,d.client.location],
+      [tl.propType,d.client.propType],[tl.floors,d.client.floors],[tl.area,d.client.area+' m\u00b2'],
+      [tl.systemsReq,d.client.systems]
+    ]},
+    {key:'CCTV',title:tl.s2title,rows:[
+      [tl.covAreas,d.cctv.areas],[tl.lighting,d.cctv.light],
+      [tl.nightMon,d.cctv.night],[tl.cableRoute,d.cctv.cable],[tl.cctvNotes,d.cctv.notes]
+    ]},
+    {key:'Network',title:tl.s3title,rows:[
+      [tl.existingRouter,d.network.router],[tl.mainIssues,d.network.issues],
+      [tl.highUsage,d.network.highUsage],[tl.cat6,d.network.cat6],[tl.poe,d.network.poe]
+    ]},
+    {key:'Smart',title:tl.s4title,rows:[[tl.smartSubs,d.smart.systems],[tl.ctrlMethod,d.smart.control]]},
+    {key:'Sound',title:tl.s5title,rows:[
+      [tl.spaceType,d.sound.space],[tl.audioUse,d.sound.use],
+      [tl.multiZones,d.sound.zones],[tl.soundNotes,d.sound.notes]
+    ]},
+    {always:true,title:tl.s6title,rows:[[tl.powerAvail,d.infra.power],[tl.cablePaths,d.infra.cable],[tl.rackNeeded,d.infra.rack]]},
+    {always:true,title:tl.s7title,rows:[[tl.keyObs,d.tech.observations],[tl.risks,d.tech.risks],[tl.sugDesign,d.tech.design]]},
+    {always:true,title:tl.s8title,rows:[[tl.nextAction,d.next.action]]},
+  ];
+  const sections=all.filter(s=>s.always||has(s.key));
+  $('sum-content').innerHTML=sections.map((s,i)=>
+    '<div class="sum-section"><div class="sum-sec-title">'+nPad(i+1,2)+' \u00b7 '+s.title+'</div>'+
+    s.rows.map(r=>'<div class="sum-row"><span class="sum-key">'+r[0]+'</span><span class="sum-val'+(r[1]?'':' empty')+'">'+(r[1]||'\u2014')+'</span></div>').join('')+
+    '</div>'
+  ).join('');
+}
+
+function openQuotation() {
+  const data = collectData();
+  const c = data.client;
+  const params = new URLSearchParams({
+    name:    c.name    || '',
+    phone:   c.phone   || '',
+    address: c.location|| '',
+    tech:    c.tech    || '',
+    systems: c.systems || ''
+  });
+  window.open('quotation.html?' + params.toString(), '_blank');
+}
+
+function shareWhatsApp() {
+  const data = collectData();
+  const c = data.client;
+  const isAr = lang === 'ar';
+  const sys = c.systems || '';
+  const lines = isAr ? [
+    '🔵 *VYRA Systems — معاينة موقع*',
+    '',
+    `👤 *العميل:* ${c.name}`,
+    `👷 *الفني:* ${c.tech}`,
+    `📞 *الهاتف:* ${c.phone}`,
+    `📍 *الموقع:* ${c.location}`,
+    `🏠 *النوع:* ${c.propType}`,
+    `⚙️ *الأنظمة:* ${sys}`,
+    '',
+    `📋 *الإجراء التالي:* ${data.next.action}`,
+    surveyPhotos.length ? `📷 *صور:* ${surveyPhotos.length} صورة` : '',
+    '',
+    '_تم إرسال التفاصيل الكاملة إلى Google Sheets_'
+  ].filter(Boolean) : [
+    '🔵 *VYRA Systems — Site Survey*',
+    '',
+    `👤 *Client:* ${c.name}`,
+    `👷 *Technician:* ${c.tech}`,
+    `📞 *Phone:* ${c.phone}`,
+    `📍 *Location:* ${c.location}`,
+    `🏠 *Property:* ${c.propType}`,
+    `⚙️ *Systems:* ${sys}`,
+    '',
+    `📋 *Next Action:* ${data.next.action}`,
+    surveyPhotos.length ? `📷 *Photos:* ${surveyPhotos.length} attached` : '',
+    '',
+    '_Full details saved to Google Sheets_'
+  ].filter(Boolean);
+
+  const msg = encodeURIComponent(lines.join('\n'));
+  // Feature 7: use saved group number if available
+  const group = localStorage.getItem(WA_GROUP_KEY) || '';
+  const base = group ? `https://wa.me/${group.replace(/\D/g,'')}` : 'https://wa.me/';
+  window.open(base + '?text=' + msg, '_blank');
+}
+
+
+// ── FEATURE 7: WhatsApp Group ──────────────────────────
+function setWaGroup(){
+  const current = localStorage.getItem(WA_GROUP_KEY) || '';
+  const prompt_txt = lang === 'ar'
+    ? 'أدخل رقم مجموعة واتساب (مع كود الدولة، مثال: 201001234567):'
+    : 'Enter WhatsApp group number (with country code, e.g. 201001234567):';
+  const val = window.prompt(prompt_txt, current);
+  if(val === null) return;
+  const clean = val.replace(/\D/g,'');
+  if(clean){ localStorage.setItem(WA_GROUP_KEY, clean); showToast(lang==='ar' ? '✓ تم حفظ رقم المجموعة' : '✓ Group number saved'); }
+}
+
+function printSurvey() {
+  const data = collectData();
+  const printData = Object.assign({}, data, {
+    lang: lang,
+    translations: T[lang],
+    photos: surveyPhotos,
+    submittedAt: data.submittedAt  // real submission timestamp
+  });
+  try { localStorage.setItem('vyra_print_data', JSON.stringify(printData)); } catch(e) {}
+  window.open('survey-print.html', '_blank');
+}
+function newSurvey(){
+  if(!confirm(lang==='ar'?'هل تريد بدء استبيان جديد؟':'Start a new survey?'))return;
+  try{localStorage.removeItem('vyra_draft');}catch(e){}
+  location.reload();
+}
+
+let toastT;
+function showToast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),3000);}
+
+window.addEventListener('online',()=>{showToast(lang==='ar'?'متصل — جاري المزامنة':'Back online — syncing…');flushQueue();});
+
+// ── VERSION ──────────────────────────────
+const APP_VERSION = '4.0.0';
+(function(){const el=$('version-badge');if(el)el.textContent='v'+APP_VERSION;})();
+
+// ── UPDATE SYSTEM ────────────────────────
+let pendingWorker=null;
+function applyUpdate(){if(pendingWorker)pendingWorker.postMessage({action:'skipWaiting'});window.location.reload(true);}
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', async ()=>{
+    try{
+      // Register SW — no unregister, that breaks update detection
+      const reg = await navigator.serviceWorker.register('sw.js');
+
+      // Check for update immediately, then every 60 seconds
+      reg.update();
+      setInterval(()=>reg.update(), 60000);
+
+      // New SW found — wait for it to install, then show banner
+      reg.addEventListener('updatefound', ()=>{
+        const nw = reg.installing;
+        nw.addEventListener('statechange', ()=>{
+          if(nw.state === 'installed' && navigator.serviceWorker.controller){
+            // New version ready — show update banner
+            pendingWorker = nw;
+            const bar = $('update-bar');
+            if(bar) bar.classList.add('show');
+          }
+        });
+      });
+
+      // When new SW takes control — reload to apply changes
+      navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+        window.location.reload(true);
+      });
+
+    }catch(e){ console.log('SW error:', e); }
+  });
+}
+
+// Convert Western digits to Arabic-Indic when in Arabic mode
+function n(num){
+  if(lang !== 'ar') return String(num);
+  return String(num).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+}
+function nPad(num, len){
+  return n(String(num).padStart(len, '0'));
+}
+loadDraft();
+loadTechName();       // Feature 1: restore saved technician name
+buildSequence();
+applyLang();          // apply saved language first
+showStep(sequence[0]);
+updateUI();
+flushQueue();
+</script>
+</body>
+</html>
