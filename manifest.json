@@ -1,13 +1,15 @@
 {
+  "id": "vyra-systems-app",
   "name": "VYRA Systems",
   "short_name": "VYRA",
-  "description": "VYRA Systems - Site Survey & Management App",
+  "description": "VYRA Systems - Site Survey, Dashboard & Quotation Management App",
   "start_url": "/vyra-survey/app.html",
   "scope": "/vyra-survey/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0d1526",
   "theme_color": "#19224A",
+  "categories": ["business", "productivity", "utilities"],
   "icons": [
     {
       "src": "icons/icon-192.png",
@@ -20,6 +22,15 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "icons/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "VYRA Systems Home Screen"
     }
   ]
 }
