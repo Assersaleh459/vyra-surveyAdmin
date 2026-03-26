@@ -1,48 +1,40 @@
-const CACHE = 'vyra-v25';
-const ASSETS = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png'];
+const CACHE = 'vyra-app-v1';
+const URLS = [
+  '/vyra-survey/app.html',
+  '/vyra-survey/manifest.json',
+  '/vyra-survey/icons/icon-192.png',
+  '/vyra-survey/icons/icon-512.png'
+];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
-  // Do NOT skipWaiting here — wait for user to tap "Update"
+  e.waitUntil(
+    caches.open(CACHE).then(c => c.addAll(URLS).catch(()=>{}))
+  );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
-      .then(() => self.clients.claim())
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    )
   );
-});
-
-// Listen for "Update" button tap from the app
-self.addEventListener('message', e => {
-  if(e.data && e.data.action === 'skipWaiting') {
-    self.skipWaiting();
-  }
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', e => {
-  const url = e.request.url;
-
-  // Never intercept external requests (Google, fonts, etc.)
-  if(!url.startsWith(self.location.origin)) return;
-
-  // Network first for HTML — always get fresh content
-  if(url.endsWith('.html') || url.endsWith('/') || url === self.location.origin) {
+  // Network first for Firebase, cache fallback for app shell
+  if(e.request.url.includes('firebase') || e.request.url.includes('googleapis')){
+    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+  } else {
     e.respondWith(
       fetch(e.request)
-        .then(res => {
-          const clone = res.clone();
+        .then(r => { 
+          const clone = r.clone();
           caches.open(CACHE).then(c => c.put(e.request, clone));
-          return res;
+          return r;
         })
         .catch(() => caches.match(e.request))
     );
-    return;
   }
-
-  // Cache first for icons and static assets
-  e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request))
-  );
 });
